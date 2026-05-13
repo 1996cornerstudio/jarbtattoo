@@ -94,6 +94,32 @@
               </a>
               <button
                 type="button"
+                id="btn-sync-sheets"
+                class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-800 transition-all hover:bg-neutral-50"
+                title="ดึงข้อมูลล่าสุดจาก Google Sheets"
+              >
+                <span class="inline-flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                  <svg
+                    data-sync-icon="refresh"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-4 w-4 text-neutral-500"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                    />
+                  </svg>
+                  <span data-sync-icon="check" class="hidden text-sm leading-none" role="img" aria-hidden="true">✅</span>
+                </span>
+                <span data-sync-label>Sync ข้อมูล</span>
+              </button>
+              <button
+                type="button"
                 id="btn-logout"
                 class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-800 transition hover:bg-red-50"
               >
@@ -1325,6 +1351,7 @@
         var kanbanEl = document.getElementById("kanban");
         var boardEmptyEl = document.getElementById("board-empty");
         var btnRefresh = document.getElementById("btn-refresh");
+        var btnSyncSheets = document.getElementById("btn-sync-sheets");
 
         var detailModal = document.getElementById("detail-modal");
         var detailBackdrop = document.getElementById("detail-modal-backdrop");
@@ -3618,6 +3645,71 @@
         });
 
         btnRefresh.addEventListener("click", renderBoard);
+
+        if (btnSyncSheets) {
+          var syncIconRefresh = btnSyncSheets.querySelector('[data-sync-icon="refresh"]');
+          var syncIconCheck = btnSyncSheets.querySelector('[data-sync-icon="check"]');
+          var syncLabelEl = btnSyncSheets.querySelector("[data-sync-label]");
+
+          function resetSyncSheetsButton() {
+            btnSyncSheets.disabled = false;
+            if (syncIconRefresh) {
+              syncIconRefresh.classList.remove("animate-spin");
+              syncIconRefresh.classList.remove("hidden");
+            }
+            if (syncIconCheck) syncIconCheck.classList.add("hidden");
+            if (syncLabelEl) syncLabelEl.textContent = "Sync ข้อมูล";
+          }
+
+          function setSyncSheetsLoading() {
+            btnSyncSheets.disabled = true;
+            if (syncIconRefresh) {
+              syncIconRefresh.classList.remove("hidden");
+              syncIconRefresh.classList.add("animate-spin");
+            }
+            if (syncIconCheck) syncIconCheck.classList.add("hidden");
+            if (syncLabelEl) syncLabelEl.textContent = "กำลังซิงค์...";
+          }
+
+          function setSyncSheetsSuccessBriefly() {
+            if (syncIconRefresh) {
+              syncIconRefresh.classList.remove("animate-spin");
+              syncIconRefresh.classList.add("hidden");
+            }
+            if (syncIconCheck) syncIconCheck.classList.remove("hidden");
+            if (syncLabelEl) syncLabelEl.textContent = "ซิงค์สำเร็จ";
+          }
+
+          btnSyncSheets.addEventListener("click", function () {
+            if (btnSyncSheets.disabled) return;
+            if (typeof JarbtattooSheetsStorage === "undefined" || !JarbtattooSheetsStorage.pullAllToLocal) {
+              alert("ระบบซิงค์ Sheets ไม่พร้อมใช้งาน (ไม่พบ JarbtattooSheetsStorage)");
+              return;
+            }
+            setSyncSheetsLoading();
+            JarbtattooSheetsStorage.pullAllToLocal({ skipOverlay: true })
+              .then(function (stores) {
+                if (stores == null) {
+                  alert("ยังไม่ได้ตั้ง URL สำหรับ Google Sheets — ไม่มีการซิงค์");
+                  resetSyncSheetsButton();
+                  return;
+                }
+                renderBoard();
+                setSyncSheetsSuccessBriefly();
+                setTimeout(function () {
+                  resetSyncSheetsButton();
+                }, 2000);
+              })
+              .catch(function (err) {
+                console.error("[Admin] Sync ข้อมูลล้มเหลว", err);
+                alert(
+                  "ซิงค์ข้อมูลไม่สำเร็จ: " +
+                    (err && err.message ? err.message : String(err))
+                );
+                resetSyncSheetsButton();
+              });
+          });
+        }
 
         var btnLogout = document.getElementById("btn-logout");
         if (btnLogout) {

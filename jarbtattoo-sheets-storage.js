@@ -124,6 +124,60 @@
   var badgeHideTimer = null;
   var remoteSaveCount = 0;
 
+  /** ISO timestamp ของครั้งล่าสุดที่ดึงจาก Sheets ลงเครื่องสำเร็จ */
+  var LAST_SYNC_STORAGE_KEY = "jarbtattoo-sheets-last-sync-at";
+
+  function recordLastSyncedAt() {
+    if (typeof global.localStorage === "undefined") return;
+    try {
+      global.localStorage.setItem(LAST_SYNC_STORAGE_KEY, new Date().toISOString());
+    } catch (e) {
+      console.warn("[JarbtattooSheets] recordLastSyncedAt failed", e);
+    }
+  }
+
+  function getLastSyncedAt() {
+    if (typeof global.localStorage === "undefined") return null;
+    try {
+      return global.localStorage.getItem(LAST_SYNC_STORAGE_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function formatLastSyncedForDisplay(iso) {
+    if (!iso) return "";
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return String(iso);
+      return d.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
+    } catch (e) {
+      return String(iso);
+    }
+  }
+
+  /**
+   * แจ้ง Last Synced — console เสมอ; badge เฉพาะตอนไม่มี remote save ค้าง
+   * @param {{ fullSync?: boolean }} opts
+   */
+  function flashLastSyncFeedback(opts) {
+    var o = opts || {};
+    var iso = getLastSyncedAt();
+    var line = "[JarbtattooSheets] Last synced at: " + (iso || "(unknown)") + (iso ? " — " + formatLastSyncedForDisplay(iso) : "");
+    if (o.fullSync) line += " (full sync: pull + push)";
+    console.log(line);
+    if (typeof document === "undefined") return;
+    if (remoteSaveCount > 0) return;
+    initSyncBadge();
+    var msg = o.fullSync ? "✅ ซิงค์ครบ (ดึง+ส่ง) · " : "✅ ดึงล่าสุด · ";
+    msg += iso ? formatLastSyncedForDisplay(iso) : "—";
+    setBadgeVisible(msg, 1);
+    clearTimeout(badgeHideTimer);
+    badgeHideTimer = setTimeout(function () {
+      if (badgeEl) badgeEl.style.opacity = "0";
+    }, 2200);
+  }
+
   /**
    * @param {{ baseUrl?: string, secret?: string }} cfg
    *   baseUrl — URL Web App จบที่ /exec (ว่าง = ไม่บังคับ state; ยังอาจ fallback URL เริ่มต้นในไฟล์นี้)
@@ -345,19 +399,44 @@
 
   /**
    * ดึงจาก Sheets แล้วเขียนลง localStorage ทั้งหมด (ไม่มี URL = resolve ทันที ไม่ทับ local)
+   * @param {{ skipOverlay?: boolean }} [opts]
    */
-  function pullAllToLocal() {
+  function pullAllToLocal(opts) {
+    var options = opts || {};
     if (!getConfiguredUrl()) {
       return Promise.resolve(null);
     }
-    showSheetsLoadingOverlay();
+    if (!options.skipOverlay) showSheetsLoadingOverlay();
     return loadAll()
       .then(function (d) {
         hydrateLocalStorageFromStores(d.stores);
+        recordLastSyncedAt();
+        flashLastSyncFeedback();
         return d.stores;
       })
       .finally(function () {
-        hideSheetsLoadingOverlay();
+        if (!options.skipOverlay) hideSheetsLoadingOverlay();
+      });
+  }
+
+  /**
+   * Full sync: ดึงจาก Sheets ลงเครื่อง แล้ว push ทุกคีย์จาก localStorage ขึ้น Sheets
+   * (ใช้เมื่อต้องการให้แน่ใจว่าข้อมูลบนเครื่องถูกส่งขึ้นไปหลังดึงล่าสุด)
+   * @returns {Promise<{ ok: true, lastSyncedAt: string | null }>}
+   */
+  function forceSync() {
+    if (!getConfiguredUrl()) {
+      return Promise.reject(new Error("ยังไม่ได้ตั้ง baseUrl (Sheets ปิดอยู่)"));
+    }
+    return pullAllToLocal({ skipOverlay: true })
+      .then(function (stores) {
+        if (stores == null) {
+          throw new Error("ดึงข้อมูลไม่สำเร็จหรือถูกข้าม");
+        }
+        return pushAllFromLocal().then(function () {
+          flashLastSyncFeedback({ fullSync: true });
+          return { ok: true, lastSyncedAt: getLastSyncedAt() };
+        });
       });
   }
 
@@ -473,6 +552,8 @@
     saveContentBundle: saveContentBundle,
     hydrateLocalStorageFromStores: hydrateLocalStorageFromStores,
     pullAllToLocal: pullAllToLocal,
+    forceSync: forceSync,
+    getLastSyncedAt: getLastSyncedAt,
     pushAllFromLocal: pushAllFromLocal,
     assertBookingShapeForUi: assertBookingShapeForUi,
   };
