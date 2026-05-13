@@ -2,8 +2,9 @@
  * Jarbtattoo — Google Sheets backend via Google Apps Script Web App
  *
  * วาง URL จาก Deploy > Web app (Execute as: Me, Who has access: Anyone)
- * ตั้ง JARBTATTOO_SHEETS_URL หรือเรียก configure({ baseUrl }) — ถ้าไม่ระบุทั้งคู่
- * จะใช้ DEFAULT_SHEETS_EXEC_URL ในไฟล์นี้
+ * ตั้ง JARBTATTOO_SHEETS_URL หรือเรียก configure({ baseUrl, secret }) — ถ้าไม่ระบุ baseUrl
+ * จะ fallback เป็น JARBTATTOO_SHEETS_URL หรือ DEFAULT_SHEETS_EXEC_URL ในไฟล์นี้
+ * ถ้า GAS ใช้ JARBTATTOO_WEB_SECRET ให้ตั้ง window.JARBTATTOO_SHEETS_SECRET หรือส่ง secret ใน configure
  *
  * ---------------------------------------------------------------------------
  * สัญญา API ฝั่ง Google Apps Script
@@ -181,14 +182,20 @@
   /**
    * @param {{ baseUrl?: string, secret?: string }} cfg
    *   baseUrl — URL Web App จบที่ /exec (ว่าง = ไม่บังคับ state; ยังอาจ fallback URL เริ่มต้นในไฟล์นี้)
+   *   secret — ตรงกับ Script property JARBTATTOO_WEB_SECRET ฝั่ง GAS (ถ้าไม่ส่ง จะลองอ่าน window.JARBTATTOO_SHEETS_SECRET)
    */
   function configure(cfg) {
     state.baseUrl = "";
     state.secret = "";
-    if (!cfg) return;
-    var u = cfg.baseUrl != null ? String(cfg.baseUrl).trim() : "";
-    if (u) state.baseUrl = u.replace(/\/?$/, "");
-    if (cfg.secret != null) state.secret = String(cfg.secret);
+    if (cfg) {
+      var u = cfg.baseUrl != null ? String(cfg.baseUrl).trim() : "";
+      if (u) state.baseUrl = u.replace(/\/?$/, "");
+      if (cfg.secret != null) state.secret = String(cfg.secret);
+    }
+    if (!state.secret && typeof global.JARBTATTOO_SHEETS_SECRET === "string") {
+      var gsec = String(global.JARBTATTOO_SHEETS_SECRET).trim();
+      if (gsec) state.secret = gsec;
+    }
   }
 
   function getConfiguredUrl() {
@@ -497,7 +504,25 @@
         endRemoteSaveIndicator(true);
       })
       .catch(function (err) {
+        var msg = err && err.message ? String(err.message) : String(err);
         console.error("[JarbtattooSheets] syncAfterLocalWrite failed:", key, err);
+        if (/unauthorized/i.test(msg)) {
+          console.warn(
+            "[JarbtattooSheets] บันทึกถูกปฏิเสธ (unauthorized) — ตั้ง Script property JARBTATTOO_WEB_SECRET ใน GAS แล้วต้องใส่ window.JARBTATTOO_SHEETS_SECRET หรือ JarbtattooSheetsStorage.configure({ secret: \"…\" }) ให้ตรงกัน"
+          );
+        }
+        if (key === STORE_KEYS.BOOKINGS && value != null) {
+          try {
+            var approx = JSON.stringify(value).length;
+            if (approx > 45000) {
+              console.warn(
+                "[JarbtattooSheets] payload จองยาว ~" +
+                  approx +
+                  " ตัวอักษร — Google Sheets จำกัดเซลล์ A1 ~50,000 ตัว; รูป data URL ควรถูกอัปโหลดเป็นลิงก์ (อัปเดตโค้ด GAS processBookingImages_ ให้ครบทุกฟิลด์รูป)"
+              );
+            }
+          } catch (ignore) {}
+        }
         endRemoteSaveIndicator(false);
       });
   }

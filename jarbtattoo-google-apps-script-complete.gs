@@ -24,7 +24,8 @@
  *   ให้ตรงกับค่าที่ส่งจาก JarbtattooSheetsStorage.configure({ secret: "..." })
  *
  * === หมายเหตุ ===
- *   เซลล์ A1 จำกัดความยาว ~50,000 ตัวอักษร — แปลง base64 เป็น Drive URL ก่อนเขียน (processBookingImages_)
+ *   เซลล์ A1 จำกัดความยาว ~50,000 ตัวอักษร — processBookingImages_ แปลง data URL เป็นลิงก์ Drive
+ *   สำหรับ referenceImage, placementImage, depositSlipImage, designSketchImage, cotSlipImage
  *   ครั้งแรกที่ใช้ DriveApp ระบบจะขอสิทธิ์ OAuth — ยอมรับตามขั้นตอน Google
  */
 
@@ -177,21 +178,31 @@ function processBookingImages_(payload) {
 
   var folder = null;
 
+  function folder_() {
+    if (!folder) folder = getOrCreateImageFolder_();
+    return folder;
+  }
+
+  /**
+   * แปลง data URL เป็นลิงก์ Drive — ลดขนาด JSON ใน A1 (จำกัด ~50k ตัวอักษร/เซลล์)
+   * ครอบคลุมรูปจากฟอร์มจอง + สลิป/แบบที่อัปโหลดในแอดมิน
+   */
+  function uploadField_(booking, fieldName, filePrefix) {
+    var v = booking[fieldName];
+    if (!v || String(v).indexOf("data:image") !== 0) return;
+    var id = booking.id != null ? String(booking.id) : String(Date.now());
+    booking[fieldName] = uploadBase64ToDrive_(String(v), filePrefix + "_" + id, folder_());
+  }
+
   for (var i = 0; i < payload.length; i++) {
     var booking = payload[i];
     if (!booking || typeof booking !== "object") continue;
 
-    var id = booking.id != null ? String(booking.id) : String(Date.now()) + "_" + i;
-
-    if (booking.referenceImage && String(booking.referenceImage).indexOf("data:image") === 0) {
-      if (!folder) folder = getOrCreateImageFolder_();
-      booking.referenceImage = uploadBase64ToDrive_(booking.referenceImage, "ref_" + id, folder);
-    }
-
-    if (booking.placementImage && String(booking.placementImage).indexOf("data:image") === 0) {
-      if (!folder) folder = getOrCreateImageFolder_();
-      booking.placementImage = uploadBase64ToDrive_(booking.placementImage, "place_" + id, folder);
-    }
+    uploadField_(booking, "referenceImage", "ref");
+    uploadField_(booking, "placementImage", "place");
+    uploadField_(booking, "depositSlipImage", "deposit");
+    uploadField_(booking, "designSketchImage", "design");
+    uploadField_(booking, "cotSlipImage", "cot");
   }
 
   return payload;
