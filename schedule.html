@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jarbtattoo.bkk · ตารางนัดหมาย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      /** ใส่ Web App URL จาก Google Apps Script — ปล่อยว่าง = ใช้ localStorage อย่างเดียว */
+      window.JARBTATTOO_SHEETS_URL =
+        window.JARBTATTOO_SHEETS_URL ||
+        "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
+    </script>
+    <script src="jarbtattoo-sheets-storage.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["IBM Plex Sans Thai", "IBM Plex Sans", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <style>
+      @keyframes tentativePulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.65;
+        }
+      }
+      .tentative-pulse {
+        animation: tentativePulse 1.6s ease-in-out infinite;
+      }
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-neutral-50 font-sans text-neutral-900">
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY) && localStorage.getItem(AUTH_ROLE_KEY)) {
+          sessionStorage.setItem(AUTH_ROLE_KEY, localStorage.getItem(AUTH_ROLE_KEY));
+          sessionStorage.setItem(AUTH_USER_KEY, localStorage.getItem(AUTH_USER_KEY) || "");
+          var ak = localStorage.getItem(AUTH_ARTIST_KEY);
+          if (ak) sessionStorage.setItem(AUTH_ARTIST_KEY, ak);
+        }
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY)) {
+          window.location.replace("login.html");
+        }
+      })();
+    </script>
+
+    <header class="border-b border-neutral-200 bg-white">
+      <div class="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">Jarbtattoo.bkk</p>
+            <h1 class="mt-1 text-xl font-semibold tracking-tight text-neutral-950">ตารางนัดหมาย</h1>
+            <p class="mt-1 text-sm text-neutral-500">ตารางข้อมูลจากแดชบอร์ด</p>
+          </div>
+          <div class="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-right text-xs text-neutral-700">
+              <p id="schedule-auth-line" class="font-medium text-neutral-900"></p>
+              <p id="schedule-auth-role" class="mt-0.5 text-[11px] text-neutral-500"></p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                href="admin.html"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+                >แดชบอร์ด</a
+              >
+              <span
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 cursor-default items-center justify-center rounded-full bg-neutral-900 px-4 text-sm font-medium text-white"
+                aria-current="page"
+                >นัดหมาย</span
+              >
+              <a
+                href="content.html"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+                >คอนเทนต์</a
+              >
+              <a
+                id="link-users"
+                href="users.html"
+                class="hidden inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-violet-300 bg-violet-50 px-4 text-sm font-medium text-violet-900 transition hover:bg-violet-100"
+                >จัดการผู้ใช้</a
+              >
+              <button
+                type="button"
+                id="btn-schedule-logout"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-800 transition hover:bg-red-50"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-[1600px] px-4 py-6">
+      <div
+        class="mb-6 flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm lg:flex-row lg:items-end lg:justify-between"
+      >
+        <div class="w-full lg:max-w-md">
+          <label for="cal-filter-artist" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            ตัวกรองศิลปิน (Filter by Artist)
+          </label>
+          <select
+            id="cal-filter-artist"
+            class="w-full appearance-none rounded-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+          ></select>
+          <p class="mt-2 text-xs text-neutral-400">เลือกศิลปินเพื่อดูเฉพาะคิวของคนนั้น — «ทั้งหมด» แสดงทุกคิวบนปฏิทิน</p>
+        </div>
+        <div class="flex flex-1 flex-wrap items-center justify-end gap-2 lg:min-w-0">
+          <button
+            type="button"
+            id="cal-prev"
+            class="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            ← เดือนก่อน
+          </button>
+          <h2 id="cal-month-title" class="min-w-[12rem] text-center text-lg font-semibold tracking-tight text-neutral-950"></h2>
+          <button
+            type="button"
+            id="cal-next"
+            class="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            เดือนถัดไป →
+          </button>
+          <button
+            type="button"
+            id="btn-open-av-modal"
+            class="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800"
+          >
+            ➕ บันทึกกิจกรรม
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <table class="w-full min-w-[720px] border-collapse text-left text-sm">
+          <thead>
+            <tr class="border-b border-neutral-200 bg-neutral-50 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">จ</th>
+              <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">อ</th>
+              <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">พ</th>
+              <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">พฤ</th>
+              <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">ศ</th>
+              <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">ส</th>
+              <th class="w-[14.28%] px-2 py-3 text-center">อา</th>
+            </tr>
+          </thead>
+          <tbody id="cal-body"></tbody>
+        </table>
+      </div>
+
+      <div
+        class="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 border-t border-neutral-200 pt-8 text-center text-sm leading-relaxed text-neutral-600"
+        aria-label="คำอธิบายสีบนปฏิทิน"
+      >
+        <span class="inline-flex max-w-full flex-wrap items-center justify-center gap-2">
+          <span class="font-medium text-neutral-900">คิวนัด</span>
+          <span class="text-neutral-500">แถบตามสถานะ · 🎨 รอออกแบบ · ⏳ รอนัด · ✅ นัดสำเร็จ · 🏁 เสร็จ</span>
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="rounded border border-red-200 bg-red-100 px-2.5 py-1 font-medium text-red-900">🔴 หยุดศิลปิน</span>
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="rounded border border-rose-300 bg-rose-200 px-2.5 py-1 font-medium text-rose-950">🔴 [Admin] ลางาน · ชื่อผู้ลง</span>
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="rounded border border-emerald-200 bg-emerald-100 px-2.5 py-1 font-medium text-emerald-900">🟢 ว่างพิเศษ</span>
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="tentative-pulse rounded border border-amber-200 bg-amber-100 px-2.5 py-1 font-medium text-amber-950">🟡 ไม่แน่ใจ</span>
+        </span>
+        <span class="inline-flex max-w-full flex-wrap items-center justify-center gap-2 text-neutral-500">
+          <span class="font-medium text-neutral-800">วันจันทร์</span>
+          <span class="rounded border border-neutral-200 bg-neutral-100 px-2.5 py-1 text-neutral-600">🚫 ปิดร้าน (ค่าเริ่มต้น)</span>
+          <span class="rounded border border-violet-400 bg-violet-100 px-2.5 py-1 font-medium text-violet-950">🏪 เปิดร้านพิเศษ (มีนัด)</span>
+        </span>
+      </div>
+    </main>
+
+    <!-- Availability / activity modal -->
+    <div id="av-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" aria-hidden="true">
+      <div id="av-modal-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
+      <div
+        class="relative z-10 w-full max-w-md overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl"
+        role="dialog"
+        aria-labelledby="av-modal-title"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 id="av-modal-title" class="text-base font-semibold text-neutral-950">บันทึกกิจกรรม</h3>
+            <p class="mt-1 text-xs text-neutral-500">วันหยุด / ว่าง</p>
+          </div>
+          <button
+            type="button"
+            id="av-modal-close"
+            class="shrink-0 rounded-md border border-neutral-200 px-2.5 py-1 text-sm text-neutral-600 hover:bg-neutral-50"
+            aria-label="ปิด"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="mt-5 space-y-3">
+          <div id="av-artist-row">
+            <label class="mb-1 block text-xs font-medium text-neutral-600">เลือกบุคคล</label>
+            <select id="av-artist" class="w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm"></select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">ประเภทสถานะ</label>
+            <select id="av-type" class="w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm">
+              <option value="dayoff">🔴 วันหยุด / ลางาน (Day Off)</option>
+              <option value="available">🟢 วันว่างพิเศษ (Available)</option>
+              <option value="tentative">🟡 ไม่แน่ใจ / สอบถามก่อน (Tentative)</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">วันเริ่ม – วันสิ้นสุด <span class="font-normal text-neutral-400">(วันเดียวกัน = 1 วัน)</span></label>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <span class="mb-1 block text-[10px] text-neutral-500">วันเริ่ม</span>
+                <input id="av-date-start" type="date" class="w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm" />
+              </div>
+              <div>
+                <span class="mb-1 block text-[10px] text-neutral-500">วันสิ้นสุด</span>
+                <input id="av-date-end" type="date" class="w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">หมายเหตุ</label>
+            <textarea id="av-note" rows="2" class="w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm" placeholder="เหตุผล / รายละเอียด"></textarea>
+          </div>
+          <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              id="av-modal-cancel"
+              class="rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              id="av-save"
+              class="rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
+            >
+              บันทึกสถานะวัน
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event detail modal -->
+    <div id="evt-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" aria-hidden="true">
+      <div id="evt-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
+      <div class="relative z-10 max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl">
+        <div class="flex items-start justify-between gap-2">
+          <h3 id="evt-title" class="text-base font-semibold text-neutral-950"></h3>
+          <button type="button" id="evt-close" class="rounded-lg border border-neutral-200 px-2 py-1 text-xs text-neutral-600 hover:bg-neutral-50">
+            ปิด
+          </button>
+        </div>
+        <div id="evt-body" class="mt-4 space-y-3 text-sm text-neutral-800"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+        var STORAGE_KEY = "jarbtattoo-bookings-v1";
+        var AVAIL_KEY = "jarbtattoo-artist-availability";
+        /** ลงวันหยุด/สถานะให้แอดมิน (ไม่ใช่ศิลปิน) — แยกจากคีย์ช่าง */
+        var ADMIN_SELF_KEY = "__admin_self__";
+        var USERS_KEY = "usersList";
+
+        function resolveUserDisplayByUsername(username) {
+          var u = (username || "").trim();
+          if (!u) return "";
+          try {
+            var raw = localStorage.getItem(USERS_KEY);
+            var list = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(list)) return u;
+            var low = u.toLowerCase();
+            var row = null;
+            for (var i = 0; i < list.length; i++) {
+              if (list[i] && String(list[i].username || "").toLowerCase() === low) {
+                row = list[i];
+                break;
+              }
+            }
+            if (!row) return u;
+            var nm = row.name != null ? String(row.name).trim() : "";
+            if (nm) return nm + " (" + u + ")";
+            return u;
+          } catch (err) {
+            return u;
+          }
+        }
+
+        /** ชื่อที่แสดงบนปฏิทินสำหรับรายการลา/สถานะของแอดมิน */
+        function adminLeaveActorLabel(entry) {
+          var raw = (entry && entry.createdBy != null ? String(entry.createdBy) : "").trim();
+          if (!raw) return "ไม่ระบุผู้ลง";
+          return resolveUserDisplayByUsername(raw);
+        }
+
+        function adminLeaveActorShort(entry, maxLen) {
+          var s = adminLeaveActorLabel(entry);
+          var n = maxLen != null ? maxLen : 16;
+          if (s.length <= n) return s;
+          return s.slice(0, Math.max(1, n - 1)) + "…";
+        }
+
+        var ARTISTS = [
+          { key: "anyone", badge: "ยังไม่มีในใจ (Anyone)" },
+          { key: "mr-bac", badge: "Mr.Bac" },
+          { key: "sra", badge: "Sra" },
+          { key: "senshin", badge: "Senshin" },
+          { key: "studiochi", badge: "STUDIOCHI" },
+        ];
+
+        var STATUSES = {
+          "pending-review": { label: "รอตรวจสอบ", icon: "📋", cls: "bg-neutral-200 text-neutral-900" },
+          "awaiting-deposit": { label: "รอมัดจำ", icon: "💳", cls: "bg-amber-100 text-amber-950" },
+          "awaiting-design": { label: "รอออกแบบ", icon: "🎨", cls: "bg-violet-100 text-violet-950" },
+          "awaiting-slot": { label: "รอนัดคิว", icon: "⏳", cls: "bg-sky-100 text-sky-950" },
+          completed: { label: "นัดสำเร็จ", icon: "✅", cls: "bg-emerald-100 text-emerald-950" },
+          "service-received": { label: "เข้ารับบริการแล้ว", icon: "🏁", cls: "bg-neutral-800 text-white" },
+        };
+
+        function getRole() {
+          return (sessionStorage.getItem(AUTH_ROLE_KEY) || "").toLowerCase();
+        }
+        function isManager() {
+          return getRole() === "manager";
+        }
+        function isArtist() {
+          return getRole() === "artist";
+        }
+        function getAuthArtistKey() {
+          return (sessionStorage.getItem(AUTH_ARTIST_KEY) || localStorage.getItem(AUTH_ARTIST_KEY) || "").trim();
+        }
+
+        function loadBookings() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            var a = raw ? JSON.parse(raw) : [];
+            return Array.isArray(a) ? a : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function loadAvailability() {
+          try {
+            var raw = localStorage.getItem(AVAIL_KEY);
+            var a = raw ? JSON.parse(raw) : [];
+            return Array.isArray(a) ? a : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function hasAppointmentRecorded(b) {
+          return !!(
+            b &&
+            b.appointmentDate &&
+            String(b.appointmentDate).trim() &&
+            b.appointmentTime &&
+            String(b.appointmentTime).trim()
+          );
+        }
+
+        function appointmentStatuses() {
+          return { "awaiting-design": true, "awaiting-slot": true, completed: true, "service-received": true };
+        }
+
+        function filterCalendarBookings(all) {
+          var st = appointmentStatuses();
+          return all.filter(function (b) {
+            if (!hasAppointmentRecorded(b)) return false;
+            return !!st[b.status];
+          });
+        }
+
+        function artistKeyOfBooking(b) {
+          return b.artist != null && String(b.artist).trim() !== "" ? String(b.artist) : "anyone";
+        }
+
+        function artistLabel(key) {
+          if (key === ADMIN_SELF_KEY) return "Admin (ตัวเอง)";
+          var f = ARTISTS.find(function (a) {
+            return a.key === key;
+          });
+          return f ? f.badge : key;
+        }
+
+        function placementLine(b) {
+          if (!b) return "—";
+          if (b.placementLabel) return b.placementLabel;
+          return b.placement || "—";
+        }
+
+        var viewDate = new Date();
+        viewDate.setDate(1);
+        var filterArtist = "all";
+        /** กำลังแก้ไขรายการ availability รหัสนี้ (null = สร้างใหม่) */
+        var editingAvailabilityId = null;
+
+        function getAuthUsername() {
+          return (sessionStorage.getItem(AUTH_USER_KEY) || localStorage.getItem(AUTH_USER_KEY) || "").trim();
+        }
+
+        function canEditOwnAvailability(entry) {
+          if (!entry || !entry.id) return false;
+          var by = (entry.createdBy != null ? String(entry.createdBy) : "").trim();
+          var me = getAuthUsername();
+          if (!by || !me) return false;
+          return by.toLowerCase() === me.toLowerCase();
+        }
+
+        function saveAvailabilityList(list) {
+          localStorage.setItem(AVAIL_KEY, JSON.stringify(list));
+          if (typeof JarbtattooSheetsStorage !== "undefined" && JarbtattooSheetsStorage.syncAfterLocalWrite) {
+            JarbtattooSheetsStorage.syncAfterLocalWrite(AVAIL_KEY, list);
+          }
+        }
+
+        function deleteAvailabilityById(id) {
+          var list = loadAvailability();
+          var idx = -1;
+          var target = null;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].id === id) {
+              idx = i;
+              target = list[i];
+              break;
+            }
+          }
+          if (idx < 0 || !target) {
+            alert("ไม่พบรายการ");
+            return false;
+          }
+          if (!canEditOwnAvailability(target)) {
+            alert("คุณไม่มีสิทธิ์ลบรายการนี้");
+            return false;
+          }
+          list.splice(idx, 1);
+          saveAvailabilityList(list);
+          return true;
+        }
+
+        function pad(n) {
+          return n < 10 ? "0" + n : String(n);
+        }
+        function ymd(d) {
+          return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+        }
+
+        /** วันจันทร์ = ปิดร้านเป็นค่าเริ่มต้น (มีนัด = เปิดร้านพิเศษ) — getDay(): 0=อา … 1=จ */
+        function isMonday(d) {
+          return d.getDay() === 1;
+        }
+
+        function dateInRange(dStr, startStr, endStr) {
+          var d = new Date(dStr + "T12:00:00").getTime();
+          var s = new Date(startStr + "T12:00:00").getTime();
+          var e = new Date(endStr + "T12:00:00").getTime();
+          return d >= s && d <= e;
+        }
+
+        function bookingsForCell(ymdStr) {
+          return filterCalendarBookings(loadBookings()).filter(function (b) {
+            if (filterArtist !== "all" && artistKeyOfBooking(b) !== filterArtist) return false;
+            return String(b.appointmentDate).trim() === ymdStr;
+          });
+        }
+
+        function availabilityForCell(ymdStr) {
+          return loadAvailability().filter(function (e) {
+            if (filterArtist !== "all" && e.artistKey !== filterArtist) return false;
+            return dateInRange(ymdStr, e.dateStart, e.dateEnd || e.dateStart);
+          });
+        }
+
+        function timeShort(t) {
+          if (!t) return "";
+          return String(t).trim().replace(/\s*น\.?$/i, "");
+        }
+
+        function renderCalendar() {
+          var title = document.getElementById("cal-month-title");
+          var tb = document.getElementById("cal-body");
+          if (title)
+            title.textContent = viewDate.toLocaleString("th-TH", { month: "long", year: "numeric" });
+          if (!tb) return;
+          tb.innerHTML = "";
+          var y = viewDate.getFullYear();
+          var m = viewDate.getMonth();
+          var first = new Date(y, m, 1);
+          var startDow = (first.getDay() + 6) % 7;
+          var daysInMonth = new Date(y, m + 1, 0).getDate();
+          var dayNum = 1;
+          for (var row = 0; row < 6; row++) {
+            var tr = document.createElement("tr");
+            for (var col = 0; col < 7; col++) {
+              var td = document.createElement("td");
+              td.className = "align-top border border-neutral-100 bg-white p-2 align-top min-h-[128px] w-[14.28%] align-top";
+              var idx = row * 7 + col;
+              if (idx < startDow || dayNum > daysInMonth) {
+                td.className += " bg-neutral-50/80";
+              } else {
+                var cellDate = new Date(y, m, dayNum);
+                var ds = ymd(cellDate);
+                var num = document.createElement("div");
+                num.className = "mb-1.5 flex items-center justify-between text-lg font-semibold tabular-nums text-neutral-800";
+                num.innerHTML = "<span>" + dayNum + "</span>";
+                td.appendChild(num);
+
+                if (isMonday(cellDate)) {
+                  var monBk = bookingsForCell(ds);
+                  var shopStrip = document.createElement("div");
+                  shopStrip.className =
+                    "mb-1.5 w-full rounded-md border px-1.5 py-1 text-center text-xs font-semibold leading-tight ";
+                  if (monBk.length > 0) {
+                    shopStrip.className += "border-violet-400 bg-violet-100 text-violet-950";
+                    shopStrip.textContent =
+                      monBk.length === 1 ? "🏪 เปิดร้านพิเศษ (มี 1 นัด)" : "🏪 เปิดร้านพิเศษ (มี " + monBk.length + " นัด)";
+                  } else {
+                    shopStrip.className += "border-neutral-200 bg-neutral-100 text-neutral-500";
+                    shopStrip.textContent = "🚫 ปิดร้าน (จันทร์)";
+                  }
+                  td.appendChild(shopStrip);
+                }
+
+                var stack = document.createElement("div");
+                stack.className = "flex max-h-48 flex-col gap-1 overflow-y-auto";
+
+                availabilityForCell(ds).forEach(function (e) {
+                  var bar = document.createElement("button");
+                  bar.type = "button";
+                  var base =
+                    "w-full rounded-md border px-1.5 py-1 text-left text-xs font-medium leading-snug ";
+                  var isAdm = e.artistKey === ADMIN_SELF_KEY;
+                  if (e.type === "dayoff") {
+                    if (isAdm) {
+                      bar.className =
+                        base + "border-rose-400 bg-rose-200/95 text-rose-950 shadow-[inset_0_0_0_1px_rgba(244,63,94,0.25)]";
+                      bar.textContent = "🔴 [Admin] ลางาน · " + adminLeaveActorShort(e, 18);
+                    } else {
+                      bar.className = base + "border-red-200 bg-red-100 text-red-900 line-through decoration-red-400";
+                      bar.textContent = "🔴 หยุด · " + artistLabel(e.artistKey);
+                    }
+                  } else if (e.type === "available") {
+                    if (isAdm) {
+                      bar.className = base + "border-emerald-400 bg-emerald-200/90 text-emerald-950";
+                      bar.textContent = "🟢 [Admin] ว่าง · " + adminLeaveActorShort(e, 16);
+                    } else {
+                      bar.className = base + "border-emerald-200 bg-emerald-100 text-emerald-900";
+                      bar.textContent = "🟢 ว่าง · " + artistLabel(e.artistKey);
+                    }
+                  } else {
+                    if (isAdm) {
+                      bar.className = base + "tentative-pulse border-amber-300 bg-amber-200 text-amber-950";
+                      bar.textContent = "🟡 [Admin] ไม่แน่ใจ · " + adminLeaveActorShort(e, 14);
+                    } else {
+                      bar.className = base + "tentative-pulse border-amber-200 bg-amber-100 text-amber-950";
+                      bar.textContent = "🟡 ไม่แน่ใจ · " + artistLabel(e.artistKey);
+                    }
+                  }
+                  bar.addEventListener("click", function () {
+                    openEvtModal("leave", e, null);
+                  });
+                  stack.appendChild(bar);
+                });
+
+                bookingsForCell(ds).forEach(function (b) {
+                  var st = STATUSES[b.status] || { label: b.status, icon: "📌", cls: "bg-neutral-200 text-neutral-900" };
+                  var btn = document.createElement("button");
+                  btn.type = "button";
+                  btn.className =
+                    "w-full rounded-md border border-neutral-200/80 px-1.5 py-1 text-left text-xs font-medium leading-snug " +
+                    st.cls;
+                  btn.textContent = st.icon + " " + timeShort(b.appointmentTime) + " · " + (b.fullName || "—");
+                  btn.addEventListener("click", function () {
+                    openEvtModal("booking", null, b);
+                  });
+                  stack.appendChild(btn);
+                });
+
+                td.appendChild(stack);
+                dayNum++;
+              }
+              tr.appendChild(td);
+            }
+            tb.appendChild(tr);
+            if (dayNum > daysInMonth && row >= 4) break;
+          }
+        }
+
+        function openEvtModal(kind, leave, booking) {
+          var m = document.getElementById("evt-modal");
+          var body = document.getElementById("evt-body");
+          var title = document.getElementById("evt-title");
+          if (!m || !body || !title) return;
+          body.innerHTML = "";
+          if (kind === "leave" && leave) {
+            title.textContent =
+              leave.type === "dayoff"
+                ? "วันหยุด / ลา"
+                : leave.type === "available"
+                  ? "วันว่างพิเศษ"
+                  : "ไม่แน่ใจ / สอบถามก่อน";
+            body.appendChild(elP("บุคคล: " + artistLabel(leave.artistKey)));
+            body.appendChild(elP("ช่วงวันที่: " + leave.dateStart + " → " + (leave.dateEnd || leave.dateStart)));
+            if (leave.note) body.appendChild(elP("หมายเหตุ: " + leave.note));
+            if (leave.createdBy) {
+              body.appendChild(elP("ผู้บันทึก: " + adminLeaveActorLabel(leave)));
+            } else {
+              body.appendChild(elP("ผู้บันทึก: ไม่ระบุ (แก้ไข/ลบไม่ได้)"));
+            }
+            if (canEditOwnAvailability(leave)) {
+              var actions = document.createElement("div");
+              actions.className = "mt-4 flex flex-wrap gap-2 border-t border-neutral-200 pt-4";
+              var btnEd = document.createElement("button");
+              btnEd.type = "button";
+              btnEd.className =
+                "rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50";
+              btnEd.textContent = "แก้ไข";
+              btnEd.addEventListener("click", function () {
+                closeEvt();
+                openAvModalForEdit(leave);
+              });
+              var btnDel = document.createElement("button");
+              btnDel.type = "button";
+              btnDel.className =
+                "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100";
+              btnDel.textContent = "ลบ";
+              btnDel.addEventListener("click", function () {
+                if (!confirm("ลบรายการวันหยุด/ว่างนี้?")) return;
+                if (deleteAvailabilityById(leave.id)) {
+                  closeEvt();
+                  renderCalendar();
+                }
+              });
+              actions.appendChild(btnEd);
+              actions.appendChild(btnDel);
+              body.appendChild(actions);
+            }
+          } else if (booking) {
+            title.textContent = "นัดหมาย · " + (booking.fullName || "—");
+            var st = STATUSES[booking.status] || { label: booking.status, icon: "" };
+            body.appendChild(elP("สถานะ: " + st.icon + " " + st.label));
+            body.appendChild(elP("เวลา: " + timeShort(booking.appointmentTime)));
+            body.appendChild(elP("วันที่: " + (booking.appointmentDate || "—")));
+            body.appendChild(elP("ศิลปิน: " + artistLabel(artistKeyOfBooking(booking))));
+            body.appendChild(elP("ขนาด: " + (booking.widthCm != null ? booking.widthCm : "—") + " × " + (booking.heightCm != null ? booking.heightCm : "—") + " cm"));
+            body.appendChild(elP("ตำแหน่ง: " + placementLine(booking)));
+            if (booking.referenceImage) {
+              body.appendChild(elP("รูปเรฟ:"));
+              body.appendChild(elImg(booking.referenceImage));
+            }
+            if (booking.designSketchImage) {
+              body.appendChild(elP("แบบร่าง:"));
+              body.appendChild(elImg(booking.designSketchImage));
+            }
+          }
+          m.classList.remove("hidden");
+          m.classList.add("flex");
+        }
+
+        function elP(t) {
+          var p = document.createElement("p");
+          p.className = "leading-relaxed";
+          p.textContent = t;
+          return p;
+        }
+        function elImg(src) {
+          var i = document.createElement("img");
+          i.src = src;
+          i.className = "mt-1 max-h-40 w-full rounded-lg border border-neutral-200 object-contain";
+          i.alt = "";
+          return i;
+        }
+
+        function closeEvt() {
+          var m = document.getElementById("evt-modal");
+          if (m) {
+            m.classList.add("hidden");
+            m.classList.remove("flex");
+          }
+        }
+
+        function buildFilters() {
+          var sel = document.getElementById("cal-filter-artist");
+          var avArtist = document.getElementById("av-artist");
+          if (!sel || !avArtist) return;
+          sel.innerHTML = "";
+          avArtist.innerHTML = "";
+          if (isArtist()) {
+            var ak = getAuthArtistKey();
+            var o = document.createElement("option");
+            o.value = ak || "all";
+            o.textContent = artistLabel(ak) || ak;
+            sel.appendChild(o);
+            sel.disabled = true;
+            filterArtist = ak || "all";
+            var o2 = document.createElement("option");
+            o2.value = ak;
+            o2.textContent = artistLabel(ak);
+            avArtist.appendChild(o2);
+            avArtist.disabled = true;
+          } else {
+            sel.disabled = false;
+            var all = document.createElement("option");
+            all.value = "all";
+            all.textContent = "ทุกศิลปิน";
+            sel.appendChild(all);
+            var admCal = document.createElement("option");
+            admCal.value = ADMIN_SELF_KEY;
+            admCal.textContent = "Admin (ตัวเอง)";
+            sel.appendChild(admCal);
+            var admForm = document.createElement("option");
+            admForm.value = ADMIN_SELF_KEY;
+            admForm.textContent = "Admin (ตัวเอง)";
+            avArtist.appendChild(admForm);
+            ARTISTS.forEach(function (a) {
+              if (a.key === "anyone") return;
+              var o = document.createElement("option");
+              o.value = a.key;
+              o.textContent = a.badge;
+              sel.appendChild(o);
+              var o2 = document.createElement("option");
+              o2.value = a.key;
+              o2.textContent = a.badge;
+              avArtist.appendChild(o2);
+            });
+            sel.value = filterArtist;
+            if (sel.value !== filterArtist) {
+              filterArtist = "all";
+              sel.value = "all";
+            }
+          }
+        }
+
+        function setAvModalEditMode(isEdit) {
+          var titleEl = document.getElementById("av-modal-title");
+          var saveBtn = document.getElementById("av-save");
+          if (titleEl) titleEl.textContent = isEdit ? "แก้ไขกิจกรรม" : "บันทึกกิจกรรม";
+          if (saveBtn) saveBtn.textContent = isEdit ? "บันทึกการแก้ไข" : "บันทึกสถานะวัน";
+        }
+
+        /** เปิด modal สร้างใหม่ */
+        function openAvModal() {
+          openAvModalForEdit(null);
+        }
+
+        /** เปิด modal สร้างใหม่ (leave=null) หรือแก้ไขรายการเดิม */
+        function openAvModalForEdit(leave) {
+          var m = document.getElementById("av-modal");
+          if (!m) return;
+          editingAvailabilityId = leave && leave.id ? leave.id : null;
+          setAvModalEditMode(!!editingAvailabilityId);
+
+          var ds = document.getElementById("av-date-start");
+          var de = document.getElementById("av-date-end");
+          var typ = document.getElementById("av-type");
+          var note = document.getElementById("av-note");
+          var art = document.getElementById("av-artist");
+          if (leave && leave.id) {
+            if (ds) ds.value = leave.dateStart || "";
+            if (de) de.value = leave.dateEnd || leave.dateStart || "";
+            if (typ) typ.value = leave.type || "dayoff";
+            if (note) note.value = leave.note != null ? String(leave.note) : "";
+            if (art) {
+              var want = leave.artistKey || "";
+              art.value = want;
+              if (want && art.value !== want) {
+                var exists = false;
+                for (var oi = 0; oi < art.options.length; oi++) {
+                  if (art.options[oi].value === want) {
+                    exists = true;
+                    break;
+                  }
+                }
+                if (!exists) {
+                  var opt = document.createElement("option");
+                  opt.value = want;
+                  opt.textContent = artistLabel(want);
+                  art.insertBefore(opt, art.firstChild);
+                }
+                art.value = want;
+              }
+            }
+          } else {
+            var today = ymd(new Date());
+            if (ds) ds.value = today;
+            if (de) de.value = today;
+            if (typ) typ.value = "dayoff";
+            if (note) note.value = "";
+          }
+          m.classList.remove("hidden");
+          m.classList.add("flex");
+          m.setAttribute("aria-hidden", "false");
+        }
+
+        function closeAvModal() {
+          var m = document.getElementById("av-modal");
+          if (!m) return;
+          editingAvailabilityId = null;
+          setAvModalEditMode(false);
+          m.classList.add("hidden");
+          m.classList.remove("flex");
+          m.setAttribute("aria-hidden", "true");
+        }
+
+        function wire() {
+          var role = getRole();
+          var user = sessionStorage.getItem(AUTH_USER_KEY) || "";
+          var line = document.getElementById("schedule-auth-line");
+          var roleLine = document.getElementById("schedule-auth-role");
+          if (line) line.textContent = user || "—";
+          if (roleLine) roleLine.textContent = role ? "สิทธิ์: " + role : "";
+          if (isManager()) {
+            var lu = document.getElementById("link-users");
+            if (lu) lu.classList.remove("hidden");
+          }
+          document.getElementById("btn-schedule-logout").addEventListener("click", function () {
+            sessionStorage.removeItem(AUTH_ROLE_KEY);
+            sessionStorage.removeItem(AUTH_USER_KEY);
+            sessionStorage.removeItem(AUTH_ARTIST_KEY);
+            try {
+              localStorage.removeItem(AUTH_ROLE_KEY);
+              localStorage.removeItem(AUTH_USER_KEY);
+              localStorage.removeItem(AUTH_ARTIST_KEY);
+            } catch (e) {}
+            window.location.href = "login.html";
+          });
+          document.getElementById("cal-prev").addEventListener("click", function () {
+            viewDate.setMonth(viewDate.getMonth() - 1);
+            renderCalendar();
+          });
+          document.getElementById("cal-next").addEventListener("click", function () {
+            viewDate.setMonth(viewDate.getMonth() + 1);
+            renderCalendar();
+          });
+          document.getElementById("cal-filter-artist").addEventListener("change", function () {
+            filterArtist = this.value;
+            renderCalendar();
+          });
+          document.getElementById("evt-close").addEventListener("click", closeEvt);
+          document.getElementById("evt-backdrop").addEventListener("click", closeEvt);
+
+          var btnOpenAv = document.getElementById("btn-open-av-modal");
+          if (btnOpenAv) {
+            btnOpenAv.addEventListener("click", function () {
+              openAvModal();
+            });
+          }
+          document.getElementById("av-modal-close").addEventListener("click", closeAvModal);
+          document.getElementById("av-modal-cancel").addEventListener("click", closeAvModal);
+          document.getElementById("av-modal-backdrop").addEventListener("click", closeAvModal);
+
+          document.getElementById("av-save").addEventListener("click", function () {
+            var ds = document.getElementById("av-date-start").value;
+            var de = document.getElementById("av-date-end").value || ds;
+            var typ = document.getElementById("av-type").value;
+            var note = (document.getElementById("av-note").value || "").trim();
+            var artist = document.getElementById("av-artist").value;
+            if (!ds) {
+              alert("กรุณาเลือกวันที่");
+              return;
+            }
+            if (new Date(de + "T12:00:00") < new Date(ds + "T12:00:00")) {
+              alert("วันสิ้นสุดต้องไม่ก่อนวันเริ่ม");
+              return;
+            }
+            if (!artist) {
+              alert("กรุณาเลือกบุคคล");
+              return;
+            }
+            var list = loadAvailability();
+            var editId = editingAvailabilityId;
+            if (editId) {
+              var found = false;
+              for (var i = 0; i < list.length; i++) {
+                if (list[i].id === editId) {
+                  if (!canEditOwnAvailability(list[i])) {
+                    alert("คุณไม่มีสิทธิ์แก้ไขรายการนี้");
+                    return;
+                  }
+                  list[i].artistKey = artist;
+                  list[i].dateStart = ds;
+                  list[i].dateEnd = de;
+                  list[i].type = typ;
+                  list[i].note = note;
+                  list[i].updatedAt = new Date().toISOString();
+                  found = true;
+                  break;
+                }
+              }
+              if (!found) {
+                alert("ไม่พบรายการ หรือถูกลบแล้ว");
+                return;
+              }
+            } else {
+              list.push({
+                id: "av-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+                artistKey: artist,
+                dateStart: ds,
+                dateEnd: de,
+                type: typ,
+                note: note,
+                createdBy: sessionStorage.getItem(AUTH_USER_KEY) || "",
+                createdAt: new Date().toISOString(),
+              });
+            }
+            saveAvailabilityList(list);
+            document.getElementById("av-note").value = "";
+            renderCalendar();
+            closeAvModal();
+          });
+
+          window.addEventListener("storage", function (e) {
+            if (e.key === STORAGE_KEY || e.key === AVAIL_KEY) renderCalendar();
+          });
+        }
+
+        async function jarbtattooSheetsBoot() {
+          try {
+            if (typeof JarbtattooSheetsStorage !== "undefined") {
+              JarbtattooSheetsStorage.configure({
+                baseUrl:
+                  (typeof JARBTATTOO_SHEETS_URL !== "undefined" && JARBTATTOO_SHEETS_URL) || "",
+              });
+              JarbtattooSheetsStorage.initSyncBadge();
+              await JarbtattooSheetsStorage.pullAllToLocal();
+            }
+          } catch (e) {
+            console.error("[JarbtattooSheets] initial pull failed", e);
+          }
+          buildFilters();
+          wire();
+          renderCalendar();
+        }
+        jarbtattooSheetsBoot();
+      })();
+    </script>
+  </body>
+</html>

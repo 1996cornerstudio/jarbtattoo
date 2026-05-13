@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jarbtattoo.bkk · จัดการผู้ใช้</title>
+    <script>
+      window.JARBTATTOO_SHEETS_URL =
+        window.JARBTATTOO_SHEETS_URL ||
+        "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
+    </script>
+    <script src="jarbtattoo-sheets-storage.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["IBM Plex Sans Thai", "IBM Plex Sans", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-neutral-50 font-sans text-neutral-900">
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY) && localStorage.getItem(AUTH_ROLE_KEY)) {
+          sessionStorage.setItem(AUTH_ROLE_KEY, localStorage.getItem(AUTH_ROLE_KEY));
+          sessionStorage.setItem(AUTH_USER_KEY, localStorage.getItem(AUTH_USER_KEY) || "");
+        }
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY)) {
+          window.location.replace("login.html");
+          return;
+        }
+        if ((sessionStorage.getItem(AUTH_ROLE_KEY) || "").toLowerCase() !== "manager") {
+          window.location.replace("admin.html");
+          return;
+        }
+      })();
+    </script>
+
+    <header class="border-b border-neutral-200 bg-white">
+      <div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">Jarbtattoo.bkk</p>
+          <h1 class="mt-1 text-xl font-semibold text-neutral-950">จัดการผู้ใช้</h1>
+          <p class="mt-1 text-sm text-neutral-500">
+            เฉพาะ Manager · ซิงค์กับ Google Sheets (Web App) + <code class="text-xs">localStorage</code> คีย์
+            <code class="text-xs">usersList</code> / <code class="text-xs">jarbtattoo-custom-roles</code>
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <a
+            href="admin.html"
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+            >แดชบอร์ด</a
+          >
+          <a
+            href="schedule.html"
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+            >นัดหมาย</a
+          >
+          <a
+            href="content.html"
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+            >คอนเทนต์</a
+          >
+          <span
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 cursor-default items-center justify-center rounded-full border border-violet-400 bg-violet-100 px-4 text-sm font-medium text-violet-900"
+            aria-current="page"
+            >จัดการผู้ใช้</span
+          >
+          <button
+            type="button"
+            id="btn-users-logout"
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-800 transition hover:bg-red-50"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-5xl px-4 py-8">
+      <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-sm font-semibold text-neutral-800">รายชื่อผู้ใช้ในระบบ</h2>
+        <button
+          type="button"
+          id="btn-open-create"
+          class="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
+        >
+          สร้างบัญชีใหม่ (Create New User)
+        </button>
+      </div>
+
+      <p id="users-msg" class="mb-4 hidden rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"></p>
+      <p id="users-err" class="mb-4 hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></p>
+
+      <div class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-neutral-200 text-sm">
+          <thead class="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <tr>
+              <th class="px-4 py-3">Username</th>
+              <th class="px-4 py-3">Role</th>
+              <th class="px-4 py-3">ชื่อ</th>
+              <th class="px-4 py-3">เบอร์</th>
+              <th class="px-4 py-3">ศิลปิน (artistKey)</th>
+              <th class="px-4 py-3 text-right">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody" class="divide-y divide-neutral-100"></tbody>
+        </table>
+      </div>
+
+      <div
+        id="create-panel"
+        class="mt-8 hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm"
+      >
+        <h3 class="text-sm font-semibold text-neutral-900">ฟอร์มสร้างบัญชี</h3>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Username <span class="text-red-600">*</span></label>
+            <input
+              id="f-username"
+              type="text"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Password <span class="text-red-600">*</span></label>
+            <input
+              id="f-password"
+              type="text"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Role <span class="text-red-600">*</span></label>
+            <div class="flex gap-2">
+              <select
+                id="f-role"
+                class="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              ></select>
+              <button
+                type="button"
+                id="btn-add-role"
+                class="shrink-0 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-100"
+                title="เพิ่ม Role ใหม่"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">artistKey (บังคับเมื่อ Role = Artist)</label>
+            <select
+              id="f-artist-key"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            >
+              <option value="">— เลือก —</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Name (ไม่บังคับ)</label>
+            <input
+              id="f-name"
+              type="text"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Phone (ไม่บังคับ)</label>
+            <input
+              id="f-phone"
+              type="text"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+          </div>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button type="button" id="btn-save-user" class="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">
+            บันทึกบัญชี
+          </button>
+          <button type="button" id="btn-cancel-create" class="rounded-full border border-neutral-300 bg-white px-5 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50">
+            ยกเลิก
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (async function () {
+        var USERS_KEY = "usersList";
+        var CUSTOM_ROLES_KEY = "jarbtattoo-custom-roles";
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+
+        try {
+          if (typeof JarbtattooSheetsStorage !== "undefined") {
+            JarbtattooSheetsStorage.configure({
+              baseUrl:
+                (typeof JARBTATTOO_SHEETS_URL !== "undefined" && JARBTATTOO_SHEETS_URL) || "",
+            });
+            JarbtattooSheetsStorage.initSyncBadge();
+            await JarbtattooSheetsStorage.pullAllToLocal();
+          }
+        } catch (e) {
+          console.warn("[JarbtattooSheets] users.html pull failed", e);
+        }
+
+        var ARTIST_KEYS = [
+          { key: "anyone", label: "ยังไม่มีในใจ (Anyone)" },
+          { key: "mr-bac", label: "Mr.Bac" },
+          { key: "sra", label: "Sra" },
+          { key: "senshin", label: "Senshin" },
+          { key: "studiochi", label: "STUDIOCHI" },
+        ];
+
+        var BASE_ROLES = ["manager", "admin", "artist"];
+
+        function loadCustomRoles() {
+          try {
+            var r = JSON.parse(localStorage.getItem(CUSTOM_ROLES_KEY) || "[]");
+            return Array.isArray(r) ? r.map(function (x) { return String(x).trim().toLowerCase(); }).filter(Boolean) : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function saveCustomRoles(arr) {
+          localStorage.setItem(CUSTOM_ROLES_KEY, JSON.stringify(arr));
+          if (typeof JarbtattooSheetsStorage !== "undefined" && JarbtattooSheetsStorage.syncAfterLocalWrite) {
+            JarbtattooSheetsStorage.syncAfterLocalWrite(CUSTOM_ROLES_KEY, arr);
+          }
+        }
+
+        function allRoleOptions() {
+          var m = {};
+          BASE_ROLES.forEach(function (r) {
+            m[r] = true;
+          });
+          loadCustomRoles().forEach(function (r) {
+            m[r] = true;
+          });
+          return Object.keys(m).sort();
+        }
+
+        function loadUsers() {
+          try {
+            var raw = localStorage.getItem(USERS_KEY);
+            var list = raw ? JSON.parse(raw) : [];
+            return Array.isArray(list) ? list : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function saveUsers(list) {
+          localStorage.setItem(USERS_KEY, JSON.stringify(list));
+          if (typeof JarbtattooSheetsStorage !== "undefined" && JarbtattooSheetsStorage.syncAfterLocalWrite) {
+            JarbtattooSheetsStorage.syncAfterLocalWrite(USERS_KEY, list);
+          }
+        }
+
+        function ensureUsersListInit() {
+          try {
+            var list = loadUsers();
+            if (!Array.isArray(list) || list.length === 0) {
+              list = [
+                {
+                  id: "seed-manager",
+                  username: "manager",
+                  password: "1234",
+                  role: "manager",
+                  name: "",
+                  phone: "",
+                  artistKey: "",
+                },
+                {
+                  id: "seed-admin",
+                  username: "admin",
+                  password: "1234",
+                  role: "admin",
+                  name: "",
+                  phone: "",
+                  artistKey: "",
+                },
+              ];
+              saveUsers(list);
+            }
+          } catch (e) {}
+        }
+
+        function fillArtistSelect() {
+          var sel = document.getElementById("f-artist-key");
+          if (!sel) return;
+          sel.innerHTML = '<option value="">— เลือก —</option>';
+          ARTIST_KEYS.forEach(function (a) {
+            var o = document.createElement("option");
+            o.value = a.key;
+            o.textContent = a.label;
+            sel.appendChild(o);
+          });
+        }
+
+        function fillRoleSelect() {
+          var sel = document.getElementById("f-role");
+          if (!sel) return;
+          sel.innerHTML = "";
+          allRoleOptions().forEach(function (r) {
+            var o = document.createElement("option");
+            o.value = r;
+            o.textContent = r;
+            sel.appendChild(o);
+          });
+        }
+
+        function renderTable() {
+          var tb = document.getElementById("users-tbody");
+          if (!tb) return;
+          tb.innerHTML = "";
+          var list = loadUsers();
+          list.forEach(function (u) {
+            var tr = document.createElement("tr");
+            tr.className = "hover:bg-neutral-50/80";
+            function td(text, cls) {
+              var d = document.createElement("td");
+              d.className = "px-4 py-3 text-neutral-800 " + (cls || "");
+              d.textContent = text != null ? String(text) : "—";
+              return d;
+            }
+            tr.appendChild(td(u.username));
+            tr.appendChild(td(u.role));
+            tr.appendChild(td(u.name || "—"));
+            tr.appendChild(td(u.phone || "—"));
+            tr.appendChild(td(u.artistKey || "—"));
+            var act = document.createElement("td");
+            act.className = "px-4 py-3 text-right";
+            if (u.username === "manager") {
+              act.appendChild(document.createTextNode("—"));
+            } else {
+              var btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "text-xs font-semibold text-red-700 underline decoration-red-300 hover:text-red-900";
+              btn.textContent = "ลบ";
+              btn.addEventListener("click", function () {
+                if (!confirm("ลบผู้ใช้ " + u.username + " ?")) return;
+                var next = loadUsers().filter(function (x) {
+                  return x.id !== u.id;
+                });
+                saveUsers(next);
+                showMsg("ลบแล้ว");
+                renderTable();
+              });
+              act.appendChild(btn);
+            }
+            tr.appendChild(act);
+            tb.appendChild(tr);
+          });
+        }
+
+        function showMsg(t) {
+          var m = document.getElementById("users-msg");
+          var e = document.getElementById("users-err");
+          if (e) e.classList.add("hidden");
+          if (m) {
+            m.textContent = t;
+            m.classList.remove("hidden");
+          }
+        }
+
+        function showErr(t) {
+          var m = document.getElementById("users-msg");
+          var e = document.getElementById("users-err");
+          if (m) m.classList.add("hidden");
+          if (e) {
+            e.textContent = t;
+            e.classList.remove("hidden");
+          }
+        }
+
+        function clearForm() {
+          document.getElementById("f-username").value = "";
+          document.getElementById("f-password").value = "";
+          document.getElementById("f-name").value = "";
+          document.getElementById("f-phone").value = "";
+          document.getElementById("f-artist-key").value = "";
+          fillRoleSelect();
+        }
+
+        document.getElementById("btn-open-create").addEventListener("click", function () {
+          document.getElementById("create-panel").classList.remove("hidden");
+          fillRoleSelect();
+          clearForm();
+        });
+        document.getElementById("btn-cancel-create").addEventListener("click", function () {
+          document.getElementById("create-panel").classList.add("hidden");
+        });
+
+        document.getElementById("btn-add-role").addEventListener("click", function () {
+          var v = prompt("พิมพ์ชื่อ Role ใหม่ (ภาษาอังกฤษตัวพิมพ์เล็กแนะนำ เช่น reception):");
+          if (!v) return;
+          v = String(v).trim().toLowerCase();
+          if (!v || BASE_ROLES.indexOf(v) !== -1) {
+            showErr("ชื่อ Role ซ้ำหรือไม่ถูกต้อง");
+            return;
+          }
+          var cr = loadCustomRoles();
+          if (cr.indexOf(v) === -1) {
+            cr.push(v);
+            saveCustomRoles(cr);
+          }
+          fillRoleSelect();
+          document.getElementById("f-role").value = v;
+          showMsg("เพิ่ม Role แล้ว");
+        });
+
+        document.getElementById("btn-save-user").addEventListener("click", function () {
+          var username = (document.getElementById("f-username").value || "").trim().toLowerCase();
+          var password = (document.getElementById("f-password").value || "").trim();
+          var role = (document.getElementById("f-role").value || "").trim().toLowerCase();
+          var name = (document.getElementById("f-name").value || "").trim();
+          var phone = (document.getElementById("f-phone").value || "").trim();
+          var artistKey = (document.getElementById("f-artist-key").value || "").trim();
+          if (!username || !password || !role) {
+            showErr("กรุณากรอก Username, Password และ Role");
+            return;
+          }
+          if (role === "artist" && !artistKey) {
+            showErr("เมื่อ Role เป็น Artist ต้องเลือกศิลปิน (artistKey)");
+            return;
+          }
+          if (role !== "artist") artistKey = "";
+          var list = loadUsers();
+          if (list.some(function (x) { return String(x.username).toLowerCase() === username; })) {
+            showErr("Username นี้มีในระบบแล้ว");
+            return;
+          }
+          list.push({
+            id: "u-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+            username: username,
+            password: password,
+            role: role,
+            name: name,
+            phone: phone,
+            artistKey: artistKey,
+          });
+          saveUsers(list);
+          renderTable();
+          document.getElementById("create-panel").classList.add("hidden");
+          showMsg("สร้างบัญชี " + username + " แล้ว");
+        });
+
+        document.getElementById("btn-users-logout").addEventListener("click", function () {
+          sessionStorage.removeItem(AUTH_ROLE_KEY);
+          sessionStorage.removeItem(AUTH_USER_KEY);
+          sessionStorage.removeItem(AUTH_ARTIST_KEY);
+          try {
+            localStorage.removeItem(AUTH_ROLE_KEY);
+            localStorage.removeItem(AUTH_USER_KEY);
+            localStorage.removeItem(AUTH_ARTIST_KEY);
+          } catch (e) {}
+          window.location.href = "login.html";
+        });
+
+        ensureUsersListInit();
+        fillArtistSelect();
+        fillRoleSelect();
+        renderTable();
+      })();
+    </script>
+  </body>
+</html>

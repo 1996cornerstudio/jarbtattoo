@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jarbtattoo.bkk · เข้าสู่ระบบ</title>
+    <script>
+      window.JARBTATTOO_SHEETS_URL =
+        window.JARBTATTOO_SHEETS_URL ||
+        "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
+    </script>
+    <script src="jarbtattoo-sheets-storage.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["IBM Plex Sans Thai", "IBM Plex Sans", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-neutral-50 font-sans text-neutral-900">
+    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+      <div class="mb-10 text-center">
+        <p class="text-[11px] font-medium uppercase tracking-[0.25em] text-neutral-400">Jarbtattoo.bkk</p>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">เข้าสู่ระบบ</h1>
+        <p class="mt-2 max-w-sm text-sm text-neutral-500">
+          ระบบหลังบ้าน · ซิงค์บัญชีกับ Google Sheets + <code class="text-xs">localStorage</code> คีย์
+          <code class="text-xs">usersList</code>
+        </p>
+      </div>
+
+      <div class="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+        <form id="login-form" class="space-y-5" novalidate>
+          <div>
+            <label for="username" class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-500"
+              >Username</label
+            >
+            <input
+              id="username"
+              name="username"
+              type="text"
+              autocomplete="username"
+              required
+              class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              placeholder="username"
+            />
+          </div>
+          <div>
+            <label for="password" class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-500"
+              >Password</label
+            >
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              placeholder="••••"
+            />
+          </div>
+          <p id="login-error" class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800"></p>
+          <button
+            type="submit"
+            class="w-full rounded-xl bg-neutral-900 py-3.5 text-sm font-semibold text-white transition hover:bg-neutral-800"
+          >
+            เข้าสู่ระบบ
+          </button>
+        </form>
+
+        <div class="mt-8 border-t border-neutral-100 pt-6 text-xs text-neutral-500">
+          <p class="font-medium text-neutral-700">เริ่มต้น (สร้างอัตโนมัติครั้งแรก)</p>
+          <p class="mt-2 font-mono text-[11px]">manager / 1234 · admin / 1234 (สร้างอัตโนมัติครั้งแรก)</p>
+          <p class="mt-2 text-[11px] text-neutral-400">Manager สามารถเพิ่มบัญชีได้ที่หน้า «จัดการผู้ใช้»</p>
+        </div>
+      </div>
+
+      <p class="mt-8 text-center text-xs text-neutral-400">
+        <a href="index.html" class="font-medium text-neutral-600 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-900"
+          >กลับหน้าฟอร์มลูกค้า</a
+        >
+      </p>
+    </div>
+
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+        var USERS_KEY = "usersList";
+
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY) && localStorage.getItem(AUTH_ROLE_KEY)) {
+          sessionStorage.setItem(AUTH_ROLE_KEY, localStorage.getItem(AUTH_ROLE_KEY));
+          sessionStorage.setItem(AUTH_USER_KEY, localStorage.getItem(AUTH_USER_KEY) || "");
+          var ak0 = localStorage.getItem(AUTH_ARTIST_KEY);
+          if (ak0) sessionStorage.setItem(AUTH_ARTIST_KEY, ak0);
+        }
+        if (sessionStorage.getItem(AUTH_ROLE_KEY)) {
+          window.location.replace("admin.html");
+          return;
+        }
+
+        function syncUsersListToSheets(list) {
+          if (typeof JarbtattooSheetsStorage === "undefined" || !JarbtattooSheetsStorage.syncAfterLocalWrite) return;
+          JarbtattooSheetsStorage.syncAfterLocalWrite(USERS_KEY, list);
+        }
+
+        function ensureUsersList() {
+          try {
+            var raw = localStorage.getItem(USERS_KEY);
+            var list = raw ? JSON.parse(raw) : null;
+            if (!Array.isArray(list) || list.length === 0) {
+              list = [
+                {
+                  id: "seed-manager",
+                  username: "manager",
+                  password: "1234",
+                  role: "manager",
+                  name: "",
+                  phone: "",
+                  artistKey: "",
+                },
+                {
+                  id: "seed-admin",
+                  username: "admin",
+                  password: "1234",
+                  role: "admin",
+                  name: "",
+                  phone: "",
+                  artistKey: "",
+                },
+              ];
+              localStorage.setItem(USERS_KEY, JSON.stringify(list));
+              syncUsersListToSheets(list);
+            }
+            return list;
+          } catch (e) {
+            var fb = [
+              {
+                id: "seed-manager",
+                username: "manager",
+                password: "1234",
+                role: "manager",
+                name: "",
+                phone: "",
+                artistKey: "",
+              },
+              {
+                id: "seed-admin",
+                username: "admin",
+                password: "1234",
+                role: "admin",
+                name: "",
+                phone: "",
+                artistKey: "",
+              },
+            ];
+            try {
+              localStorage.setItem(USERS_KEY, JSON.stringify(fb));
+              syncUsersListToSheets(fb);
+            } catch (e2) {}
+            return fb;
+          }
+        }
+
+        async function bootLoginPage() {
+          try {
+            if (typeof JarbtattooSheetsStorage !== "undefined") {
+              JarbtattooSheetsStorage.configure({
+                baseUrl:
+                  (typeof JARBTATTOO_SHEETS_URL !== "undefined" && JARBTATTOO_SHEETS_URL) || "",
+              });
+              await JarbtattooSheetsStorage.pullAllToLocal();
+            }
+          } catch (e) {
+            console.warn("[JarbtattooSheets] login pull failed", e);
+          }
+          ensureUsersList();
+
+          var form = document.getElementById("login-form");
+          var err = document.getElementById("login-error");
+
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            err.classList.add("hidden");
+            var uIn = (document.getElementById("username").value || "").trim().toLowerCase();
+            var p = document.getElementById("password").value || "";
+            var list = ensureUsersList();
+            var acc = null;
+            for (var i = 0; i < list.length; i++) {
+              if (String(list[i].username || "").toLowerCase() === uIn) {
+                acc = list[i];
+                break;
+              }
+            }
+            if (!acc || String(acc.password) !== p) {
+              err.textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+              err.classList.remove("hidden");
+              return;
+            }
+            var role = String(acc.role || "admin").toLowerCase();
+            sessionStorage.setItem(AUTH_USER_KEY, String(acc.username || "").toLowerCase());
+            sessionStorage.setItem(AUTH_ROLE_KEY, role);
+            var ak = role === "artist" ? String(acc.artistKey || "").trim() : "";
+            if (ak) sessionStorage.setItem(AUTH_ARTIST_KEY, ak);
+            else sessionStorage.removeItem(AUTH_ARTIST_KEY);
+            try {
+              localStorage.setItem(AUTH_ROLE_KEY, role);
+              localStorage.setItem(AUTH_USER_KEY, String(acc.username || "").toLowerCase());
+              if (ak) localStorage.setItem(AUTH_ARTIST_KEY, ak);
+              else localStorage.removeItem(AUTH_ARTIST_KEY);
+            } catch (e2) {}
+            window.location.replace("admin.html");
+          });
+        }
+
+        bootLoginPage();
+      })();
+    </script>
+  </body>
+</html>

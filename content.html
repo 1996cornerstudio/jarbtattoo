@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jarbtattoo.bkk · จัดการคอนเทนต์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["IBM Plex Sans Thai", "IBM Plex Sans", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-neutral-50 font-sans text-neutral-900">
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY) && localStorage.getItem(AUTH_ROLE_KEY)) {
+          sessionStorage.setItem(AUTH_ROLE_KEY, localStorage.getItem(AUTH_ROLE_KEY));
+          sessionStorage.setItem(AUTH_USER_KEY, localStorage.getItem(AUTH_USER_KEY) || "");
+          var ak = localStorage.getItem(AUTH_ARTIST_KEY);
+          if (ak) sessionStorage.setItem(AUTH_ARTIST_KEY, ak);
+        }
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY)) {
+          window.location.replace("login.html");
+        }
+      })();
+    </script>
+
+    <header class="border-b border-neutral-200 bg-white">
+      <div class="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">Jarbtattoo.bkk</p>
+            <h1 class="mt-1 text-xl font-semibold tracking-tight text-neutral-950">จัดการคอนเทนต์</h1>
+            <p class="mt-1 text-sm text-neutral-500">Content Management · เก็บใน <code class="text-xs">localStorage</code> คีย์ <code class="text-xs">contentTasks</code></p>
+          </div>
+          <div class="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-right text-xs text-neutral-700">
+              <p id="content-auth-user" class="font-medium text-neutral-900"></p>
+              <p id="content-auth-role" class="mt-0.5 text-[11px] text-neutral-500"></p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                href="admin.html"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+                >แดชบอร์ด</a
+              >
+              <a
+                href="schedule.html"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+                >นัดหมาย</a
+              >
+              <span
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 cursor-default items-center justify-center rounded-full bg-neutral-900 px-4 text-sm font-medium text-white"
+                aria-current="page"
+                >คอนเทนต์</span
+              >
+              <a
+                id="link-users-content"
+                href="users.html"
+                class="hidden inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-violet-300 bg-violet-50 px-4 text-sm font-medium text-violet-900 transition hover:bg-violet-100"
+                >จัดการผู้ใช้</a
+              >
+              <button
+                type="button"
+                id="btn-content-logout"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-800 transition hover:bg-red-50"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-[1600px] px-4 py-6">
+      <div class="mb-6 flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap items-center gap-1 border-b border-neutral-100 pb-1 sm:border-0 sm:pb-0">
+          <button
+            type="button"
+            id="tab-table"
+            class="border-b-2 border-neutral-900 px-3 py-2 text-sm font-medium text-neutral-900"
+          >
+            มุมมองตาราง
+          </button>
+          <button
+            type="button"
+            id="tab-board"
+            class="border-b-2 border-transparent px-3 py-2 text-sm font-medium text-neutral-500 hover:text-neutral-800"
+          >
+            มุมมองบอร์ด
+          </button>
+          <button
+            type="button"
+            id="tab-calendar"
+            class="border-b-2 border-transparent px-3 py-2 text-sm font-medium text-neutral-500 hover:text-neutral-800"
+          >
+            มุมมองปฏิทิน
+          </button>
+        </div>
+        <button
+          type="button"
+          id="btn-new-content"
+          class="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-900"
+        >
+          + New Content
+        </button>
+      </div>
+
+      <div id="view-table" class="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <table class="w-full min-w-[960px] border-collapse text-left text-sm">
+          <thead>
+            <tr class="border-b border-neutral-200 bg-neutral-50 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              <th class="px-3 py-3">
+                <button type="button" id="sort-date" class="flex items-center gap-1 hover:text-neutral-900">
+                  วันที่โพสต์
+                  <span class="text-[10px] font-normal normal-case text-neutral-400">(เรียง)</span>
+                </button>
+              </th>
+              <th class="px-3 py-3">ผู้รับผิดชอบ</th>
+              <th class="px-3 py-3">Format</th>
+              <th class="px-3 py-3">Content Pillar</th>
+              <th class="px-3 py-3">ชื่องาน</th>
+              <th class="px-3 py-3">Captions</th>
+              <th class="px-3 py-3">ลิงก์</th>
+              <th class="px-3 py-3">สถานะ</th>
+              <th class="px-3 py-3 text-right"></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <div id="view-board" class="hidden overflow-x-auto pb-2">
+        <div id="board-columns" class="flex min-h-[320px] gap-3"></div>
+      </div>
+
+      <div id="view-calendar" class="hidden rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <div class="mb-4 flex flex-wrap items-center justify-center gap-2 sm:justify-between">
+          <button
+            type="button"
+            id="content-cal-prev"
+            class="inline-flex h-10 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            ← เดือนก่อน
+          </button>
+          <h2 id="content-cal-title" class="min-w-[12rem] text-center text-lg font-semibold tracking-tight text-neutral-950"></h2>
+          <button
+            type="button"
+            id="content-cal-next"
+            class="inline-flex h-10 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            เดือนถัดไป →
+          </button>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-neutral-100">
+          <table class="w-full min-w-[720px] border-collapse text-left text-sm">
+            <thead>
+              <tr class="border-b border-neutral-200 bg-neutral-50 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">จ</th>
+                <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">อ</th>
+                <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">พ</th>
+                <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">พฤ</th>
+                <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">ศ</th>
+                <th class="w-[14.28%] border-r border-neutral-100 px-2 py-3 text-center">ส</th>
+                <th class="w-[14.28%] px-2 py-3 text-center">อา</th>
+              </tr>
+            </thead>
+            <tbody id="content-cal-body"></tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-center text-xs text-neutral-500">แสดงงานตามวันที่โพสต์ (Period) · สีแถบตาม Content Pillar · อักษรนำหน้าคือสถานะ · คลิกแถบเพื่อเปิดแก้ไข</p>
+      </div>
+    </main>
+
+    <div id="task-modal" class="fixed inset-0 z-50 hidden items-start justify-center overflow-y-auto p-4 py-10" aria-hidden="true">
+      <div id="modal-backdrop" class="fixed inset-0 bg-black/45 backdrop-blur-[1px]"></div>
+      <div
+        class="relative z-10 my-auto w-full max-w-lg rounded-2xl border border-neutral-200 bg-white shadow-xl"
+        role="dialog"
+        aria-labelledby="modal-title"
+      >
+        <div class="sticky top-0 flex items-start justify-between gap-3 border-b border-neutral-100 bg-white px-5 py-4">
+          <h2 id="modal-title" class="text-lg font-semibold text-neutral-950">คอนเทนต์ใหม่</h2>
+          <button
+            type="button"
+            id="modal-close"
+            class="rounded-lg border border-neutral-200 px-2.5 py-1 text-sm text-neutral-600 hover:bg-neutral-50"
+            aria-label="ปิด"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-4 px-5 py-4">
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">วันที่โพสต์ (Period)</label>
+            <input id="field-period" type="date" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">ผู้รับผิดชอบ (เลือกจากผู้ใช้ในระบบ)</label>
+            <select
+              id="field-assignee"
+              class="w-full appearance-none rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1rem; padding-right: 2rem;"
+            >
+              <option value="">— เลือกผู้รับผิดชอบ —</option>
+            </select>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="relative">
+              <label class="mb-1 block text-xs font-medium text-neutral-600">Format</label>
+              <input type="hidden" id="field-format-id" value="fmt-reel" />
+              <button
+                type="button"
+                id="btn-dd-format"
+                class="flex w-full items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-sm hover:bg-neutral-100"
+              >
+                <span class="inline-flex items-center rounded-md bg-pink-100 px-2 py-0.5 text-xs font-medium text-pink-900">Reel</span>
+                <span class="text-neutral-400">▾</span>
+              </button>
+              <div
+                id="panel-dd-format"
+                data-notion-dropdown
+                class="absolute left-0 right-0 z-20 mt-1 hidden max-h-64 overflow-y-auto rounded-lg border border-neutral-200 bg-white py-1 shadow-lg"
+              >
+                <div data-dd-body class="px-1"></div>
+                <div class="mt-1 border-t border-neutral-100 px-2 py-2">
+                  <p class="mb-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400">+ Add new option</p>
+                  <div class="flex gap-2">
+                    <input
+                      data-dd-new-input
+                      type="text"
+                      class="min-w-0 flex-1 rounded border border-neutral-200 px-2 py-1.5 text-xs"
+                      placeholder="ชื่อรูปแบบใหม่"
+                    />
+                    <button type="button" data-dd-add class="shrink-0 rounded-md bg-neutral-900 px-2 py-1.5 text-xs font-medium text-white hover:bg-neutral-800">
+                      เพิ่ม
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    data-dd-toggle-new-swatches
+                    class="mt-2 text-left text-[11px] font-medium text-neutral-600 hover:text-neutral-900"
+                  >
+                    เลือกสีสำหรับตัวเลือกใหม่ ▾
+                  </button>
+                  <div data-dd-new-color-block class="mt-1 hidden">
+                    <p class="mb-1 text-[10px] font-medium text-neutral-400">สี</p>
+                    <div data-dd-new-swatches class="flex flex-wrap gap-1"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="relative">
+              <label class="mb-1 block text-xs font-medium text-neutral-600">Content Pillar</label>
+              <input type="hidden" id="field-pillar-id" value="pil-daily" />
+              <button
+                type="button"
+                id="btn-dd-pillar"
+                class="flex w-full items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-sm hover:bg-neutral-100"
+              >
+                <span class="inline-flex items-center rounded-md bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-800">Daily Content</span>
+                <span class="text-neutral-400">▾</span>
+              </button>
+              <div
+                id="panel-dd-pillar"
+                data-notion-dropdown
+                class="absolute left-0 right-0 z-20 mt-1 hidden max-h-64 overflow-y-auto rounded-lg border border-neutral-200 bg-white py-1 shadow-lg"
+              >
+                <div data-dd-body class="px-1"></div>
+                <div class="mt-1 border-t border-neutral-100 px-2 py-2">
+                  <p class="mb-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400">+ Add new option</p>
+                  <div class="flex gap-2">
+                    <input
+                      data-dd-new-input
+                      type="text"
+                      class="min-w-0 flex-1 rounded border border-neutral-200 px-2 py-1.5 text-xs"
+                      placeholder="หมวดใหม่"
+                    />
+                    <button type="button" data-dd-add class="shrink-0 rounded-md bg-neutral-900 px-2 py-1.5 text-xs font-medium text-white hover:bg-neutral-800">
+                      เพิ่ม
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    data-dd-toggle-new-swatches
+                    class="mt-2 text-left text-[11px] font-medium text-neutral-600 hover:text-neutral-900"
+                  >
+                    เลือกสีสำหรับตัวเลือกใหม่ ▾
+                  </button>
+                  <div data-dd-new-color-block class="mt-1 hidden">
+                    <p class="mb-1 text-[10px] font-medium text-neutral-400">สี</p>
+                    <div data-dd-new-swatches class="flex flex-wrap gap-1"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">ชื่องาน / หัวข้อ</label>
+            <input
+              id="field-name"
+              type="text"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Captions Post</label>
+            <textarea
+              id="field-captions"
+              rows="4"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              placeholder="ข้อความแคปชั่น..."
+            ></textarea>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Link Post</label>
+            <input
+              id="field-link"
+              type="url"
+              class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-neutral-600">Status</label>
+            <select
+              id="field-status"
+              class="w-full appearance-none rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1rem; padding-right: 2rem;"
+            >
+              <option value="idea">Idea</option>
+              <option value="in-progress">In Progress</option>
+              <option value="ready-to-post">Ready to Post</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-100 px-5 py-4">
+          <button
+            type="button"
+            id="modal-delete"
+            class="hidden rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
+          >
+            ลบ
+          </button>
+          <button type="button" id="modal-save" class="rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800">
+            บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /** ใส่ Web App URL จาก Google Apps Script — ปล่อยว่าง = ใช้ localStorage อย่างเดียว */
+      window.JARBTATTOO_SHEETS_URL =
+        window.JARBTATTOO_SHEETS_URL ||
+        "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
+    </script>
+    <script src="jarbtattoo-sheets-storage.js"></script>
+    <script src="content.js"></script>
+  </body>
+</html>

@@ -1,0 +1,3670 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jarbtattoo.bkk · แดชบอร์ดช่าง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      /** ใส่ Web App URL จาก Google Apps Script — ปล่อยว่าง = ใช้ localStorage อย่างเดียว */
+      window.JARBTATTOO_SHEETS_URL =
+        window.JARBTATTOO_SHEETS_URL ||
+        "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
+    </script>
+    <script src="jarbtattoo-sheets-storage.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["IBM Plex Sans Thai", "IBM Plex Sans", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-neutral-50 text-neutral-900 font-sans">
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY) && localStorage.getItem(AUTH_ROLE_KEY)) {
+          sessionStorage.setItem(AUTH_ROLE_KEY, localStorage.getItem(AUTH_ROLE_KEY));
+          sessionStorage.setItem(AUTH_USER_KEY, localStorage.getItem(AUTH_USER_KEY) || "");
+          var _akTop = localStorage.getItem(AUTH_ARTIST_KEY);
+          if (_akTop) sessionStorage.setItem(AUTH_ARTIST_KEY, _akTop);
+        }
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY)) {
+          window.location.replace("login.html");
+        }
+      })();
+    </script>
+    <header class="border-b border-neutral-200 bg-white">
+      <div class="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">Jarbtattoo.bkk</p>
+            <h1 class="mt-1 text-xl font-semibold tracking-tight text-neutral-950">แดชบอร์ด</h1>
+            <p class="mt-1 text-sm text-neutral-500">
+              ข้อมูลจากบันทึกการจอง
+            </p>
+          </div>
+          <div class="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-right text-xs text-neutral-700">
+              <p id="auth-user-line" class="font-medium text-neutral-900"></p>
+              <p id="auth-role-line" class="mt-0.5 text-[11px] text-neutral-500"></p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 cursor-default items-center justify-center rounded-full bg-neutral-900 px-4 text-sm font-medium text-white"
+                aria-current="page"
+                >แดชบอร์ด</span
+              >
+              <a
+                href="schedule.html"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+              >
+                นัดหมาย
+              </a>
+              <a
+                href="content.html"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+              >
+                คอนเทนต์
+              </a>
+              <a
+                id="link-manage-users"
+                href="users.html"
+                class="hidden inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-violet-300 bg-violet-50 px-4 text-sm font-medium text-violet-900 transition hover:bg-violet-100"
+              >
+                จัดการผู้ใช้
+              </a>
+              <button
+                type="button"
+                id="btn-logout"
+                class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-800 transition hover:bg-red-50"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-[1600px] px-4 py-6">
+      <div
+        class="mb-6 flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm lg:flex-row lg:items-end lg:justify-between"
+      >
+        <div class="w-full lg:max-w-md">
+          <label for="filter-artist" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            ตัวกรองศิลปิน (Filter by Artist)
+          </label>
+          <select
+            id="filter-artist"
+            class="w-full appearance-none rounded-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+          ></select>
+          <p class="mt-2 text-xs text-neutral-400">
+            เลือกศิลปินเพื่อแสดงเฉพาะงานของคนนั้น — «ทั้งหมด» แสดงทุกคำขอ
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-2 lg:shrink-0">
+          <button
+            type="button"
+            id="btn-refresh"
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            รีเฟรช
+          </button>
+          <a
+            href="index.html"
+            class="inline-flex h-10 min-w-[8.5rem] shrink-0 items-center justify-center rounded-full bg-neutral-900 px-4 text-sm font-medium text-white transition hover:bg-neutral-800"
+          >
+            สร้างบันทึก
+          </a>
+        </div>
+      </div>
+
+      <p id="filter-empty" class="mb-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        ไม่พบงานของศิลปินที่เลือก — ลองเปลี่ยนตัวกรองหรือให้ลูกค้าส่งคำขอใหม่
+      </p>
+
+      <p id="board-empty" class="mb-4 hidden text-sm text-neutral-500">
+        ยังไม่มีรายการ — ให้ลูกค้ากรอกที่
+        <a href="index.html" class="font-medium text-neutral-800 underline">index.html</a> แล้วกลับมาหน้านี้
+      </p>
+
+      <div id="kanban" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <!-- คอลัมน์ถูกสร้างด้วย JavaScript -->
+      </div>
+    </main>
+
+    <!-- Modal รายละเอียดคำขอ -->
+    <div
+      id="detail-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="detail-modal-title"
+    >
+      <div
+        id="detail-modal-backdrop"
+        class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        tabindex="-1"
+      ></div>
+      <div
+        class="relative z-10 flex max-h-[min(90vh,800px)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl"
+      >
+        <div class="border-b border-neutral-100 px-5 py-4">
+          <h2 id="detail-modal-title" class="text-lg font-semibold text-neutral-950">รายละเอียดคำขอ</h2>
+          <p class="mt-0.5 text-xs text-neutral-500">คลิกพื้นหลังมืดหรือปิดเพื่อย้อนกลับ</p>
+          <div
+            id="modal-readonly-banner"
+            class="mt-3 hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
+          >
+            โหมดดูอย่างเดียว — งานปิดแล้ว (เข้ารับบริการแล้ว) บัญชี Admin ไม่สามารถแก้ไขได้
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto px-5 py-4">
+          <div id="modal-images" class="grid grid-cols-2 gap-3"></div>
+
+          <dl class="mt-5 space-y-3 text-sm">
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">ชื่อลูกค้า</dt>
+              <dd class="text-neutral-900">
+                <span id="modal-full-name" class="block break-words">—</span>
+                <input
+                  id="modal-edit-full-name"
+                  type="text"
+                  autocomplete="off"
+                  class="hidden mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">เบอร์โทร</dt>
+              <dd id="modal-phone" class="text-neutral-900">—</dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">ศิลปินที่เลือก</dt>
+              <dd id="modal-artist" class="font-medium text-neutral-900">—</dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">ขนาด (กว้าง × ยาว)</dt>
+              <dd class="text-neutral-900">
+                <span id="modal-size" class="block">—</span>
+                <div id="modal-edit-size-wrap" class="mt-1 hidden grid grid-cols-2 gap-2">
+                  <div>
+                    <label for="modal-edit-width-cm" class="mb-0.5 block text-[10px] font-medium text-neutral-500"
+                      >กว้าง (ซม.)</label
+                    >
+                    <input
+                      id="modal-edit-width-cm"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      class="w-full rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    />
+                  </div>
+                  <div>
+                    <label for="modal-edit-height-cm" class="mb-0.5 block text-[10px] font-medium text-neutral-500"
+                      >ยาว (ซม.)</label
+                    >
+                    <input
+                      id="modal-edit-height-cm"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      class="w-full rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    />
+                  </div>
+                </div>
+              </dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">สีงาน</dt>
+              <dd id="modal-ink-style" class="font-medium text-neutral-900">—</dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">ตำแหน่งรอยสัก</dt>
+              <dd class="leading-relaxed text-neutral-900">
+                <span id="modal-placement" class="block">—</span>
+                <div id="modal-edit-placement-wrap" class="mt-1 hidden space-y-2">
+                  <select
+                    id="modal-edit-placement"
+                    class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.1rem; padding-right: 2rem;"
+                  ></select>
+                  <div id="modal-placement-other-wrap" class="hidden">
+                    <label for="modal-edit-placement-other" class="mb-0.5 block text-[10px] font-medium text-neutral-500"
+                      >ระบุตำแหน่ง</label
+                    >
+                    <input
+                      id="modal-edit-placement-other"
+                      type="text"
+                      class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                      placeholder="เช่น ข้อมือ ข้างคอ"
+                    />
+                  </div>
+                </div>
+              </dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">สถานะปัจจุบัน</dt>
+              <dd class="text-neutral-900">
+                <select
+                  id="modal-status-select"
+                  class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.1rem; padding-right: 2rem;"
+                ></select>
+              </dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">วันเวลานัดหมาย (บันทึกในระบบ)</dt>
+              <dd id="modal-appt-display" class="font-medium leading-relaxed text-neutral-900">—</dd>
+            </div>
+            <div class="flex flex-col gap-0.5 pb-1">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">รายละเอียดจากลูกค้า</dt>
+              <dd class="text-neutral-800">
+                <span id="modal-details" class="block whitespace-pre-wrap leading-relaxed">—</span>
+                <textarea
+                  id="modal-edit-details"
+                  rows="4"
+                  class="mt-1 hidden w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                ></textarea>
+              </dd>
+            </div>
+            <div id="modal-save-customer-wrap" class="hidden pb-2">
+              <button
+                type="button"
+                id="modal-btn-save-customer"
+                class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+              >
+                บันทึกข้อมูลลูกค้า
+              </button>
+            </div>
+            <div class="flex flex-col gap-0.5 pt-2">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">ส่งคำขอเมื่อ</dt>
+              <dd id="modal-created" class="text-xs text-neutral-500">—</dd>
+            </div>
+          </dl>
+
+          <section id="modal-internal-notes-section" class="mt-6 rounded-xl border border-slate-300 bg-slate-50/80 p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-slate-950">โน้ตภายในบริษัท</h3>
+            <p class="mt-1 text-xs text-slate-700/90">สำหรับทีมร้านเท่านั้น — ไม่แสดงให้ลูกค้า</p>
+            <label for="modal-internal-notes" class="mt-3 mb-1 block text-xs font-medium text-slate-800">ข้อความ</label>
+            <textarea
+              id="modal-internal-notes"
+              rows="3"
+              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-700"
+              placeholder="เช่น ติดตามลูกค้า / นัดเก็บมัดจำ / บันทึกการประสานงานภายใน"
+            ></textarea>
+            <button
+              type="button"
+              id="modal-btn-save-internal-notes"
+              class="mt-3 w-full rounded-xl border border-slate-800 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-900"
+            >
+              บันทึกโน้ตภายใน
+            </button>
+          </section>
+
+          <section id="modal-deposit-section" class="mt-6 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-neutral-900">หลักฐานการมัดจำ</h3>
+            <p class="mt-1 text-xs text-neutral-500">
+              อัปโหลดรูปสลิปโอนมัดจำ — เก็บเป็นรูปภาพ (Base64) ในเบราว์เซอร์เดียวกับข้อมูลคำขอ
+            </p>
+            <div class="mt-4">
+              <label for="modal-deposit-amount" class="mb-1 block text-xs font-medium text-neutral-600"
+                >ยอดเงินมัดจำ (Deposit Amount)</label
+              >
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-neutral-600">฿</span>
+                <input
+                  id="modal-deposit-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="0"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+            </div>
+            <input
+              id="modal-deposit-file"
+              type="file"
+              accept="image/*"
+              class="mt-3 block w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+            <p id="modal-deposit-error" class="mt-2 hidden text-xs font-medium text-red-600"></p>
+            <div id="modal-deposit-preview" class="mt-4 hidden">
+              <p class="mb-2 text-[11px] font-medium text-neutral-500">คลิกรูปเพื่อดูขนาดเต็ม</p>
+              <button
+                type="button"
+                id="modal-deposit-thumb-btn"
+                class="group relative inline-block max-w-full rounded-xl border border-neutral-200 bg-neutral-100 p-1 text-left shadow-sm transition hover:border-neutral-400 hover:shadow"
+              >
+                <img
+                  id="modal-deposit-thumb"
+                  alt="สลิปมัดจำ"
+                  class="mx-auto max-h-28 w-auto max-w-full rounded-lg object-contain"
+                />
+                <span
+                  class="pointer-events-none absolute bottom-2 right-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100"
+                  >ขยาย</span
+                >
+              </button>
+              <button
+                type="button"
+                id="modal-deposit-remove"
+                class="mt-3 text-xs font-medium text-red-600 underline decoration-red-300 underline-offset-2 hover:text-red-800"
+              >
+                ลบสลิปที่แนบไว้
+              </button>
+            </div>
+            <div
+              id="modal-deposit-sla-wrap"
+              class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 shadow-sm"
+            >
+              <h4 class="text-xs font-semibold text-amber-950">ปรับวัน–เวลาอ้างอิง SLA มัดจำ</h4>
+              <p class="mt-1 text-[11px] leading-relaxed text-amber-900/90">
+                ใช้รีเซ็ตจุดเริ่มนับ Deadline การส่งแบบ (เฉพาะงาน «รอออกแบบ») — ทุกครั้งที่แก้ไขต้องระบุเหตุผล (บันทึกในประวัติ)
+              </p>
+              <label for="modal-deposit-sla-datetime" class="mt-3 mb-1 block text-xs font-medium text-amber-950"
+                >วัน-เวลาอ้างอิง (เวลาที่ลูกค้าโอนมัดจำ)</label
+              >
+              <input
+                id="modal-deposit-sla-datetime"
+                type="datetime-local"
+                class="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-amber-800 focus:outline-none focus:ring-1 focus:ring-amber-800"
+              />
+              <button
+                type="button"
+                id="modal-btn-save-deposit-sla"
+                class="mt-3 w-full rounded-lg bg-amber-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-800"
+              >
+                บันทึกวัน-เวลาอ้างอิง
+              </button>
+            </div>
+          </section>
+
+          <section class="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+            <h3 class="text-sm font-semibold text-neutral-900">บันทึกเวลานัดหมาย</h3>
+            <p class="mt-1 text-xs text-neutral-500">
+              Flow: มัดจำครบ → <span class="font-medium text-neutral-800">รอออกแบบ</span> → แนบแบบร่าง →
+              <span class="font-medium text-neutral-800">รอนัดคิว</span> → เลือกวันเวลาแล้วกด
+              <span class="font-medium text-neutral-700">ยืนยันและบันทึก</span> เพื่อตั้งสถานะ
+              <span class="font-medium text-neutral-800">นัดคิวสำเร็จ</span>
+            </p>
+            <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label for="modal-appt-date" class="mb-1 block text-xs font-medium text-neutral-600">วันที่</label>
+                <input
+                  id="modal-appt-date"
+                  type="date"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+              <div>
+                <label for="modal-appt-time" class="mb-1 block text-xs font-medium text-neutral-600">เวลา</label>
+                <input
+                  id="modal-appt-time"
+                  type="time"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+            </div>
+            <p id="modal-appt-error" class="mt-2 hidden text-xs font-medium text-red-600"></p>
+
+            <div
+              id="modal-appt-confirm"
+              class="mt-4 hidden rounded-xl border border-neutral-300 bg-white p-4 shadow-inner"
+              aria-live="polite"
+            >
+              <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">ยืนยันการบันทึก</p>
+              <p id="modal-appt-confirm-preview" class="mt-2 whitespace-pre-line text-sm leading-relaxed text-neutral-900"></p>
+              <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  id="modal-btn-cancel-confirm"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50 sm:w-auto"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  id="modal-btn-confirm-appt"
+                  class="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:w-auto"
+                >
+                  ยืนยันและบันทึก
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section id="modal-artist-workspace" class="mt-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-violet-950">ส่วนของศิลปิน (Artist Workspace)</h3>
+            <p class="mt-1 text-xs text-violet-900/80">
+              อัปโหลดแบบร่างรอยสักแล้วกด <span class="font-semibold">บันทึกแบบร่าง</span> — ระบบจะตั้งสถานะเป็น
+              <span class="font-semibold">รอนัดคิว</span> อัตโนมัติ (หลังมัดจำครบและอยู่ขั้นรอออกแบบ)
+            </p>
+            <label for="modal-design-file" class="mt-4 mb-1 block text-xs font-medium text-neutral-700"
+              >แบบร่างรอยสัก (Tattoo Design / Sketch)</label
+            >
+            <input
+              id="modal-design-file"
+              type="file"
+              accept="image/*"
+              class="block w-full cursor-pointer rounded-lg border border-violet-200 bg-white px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-violet-300 focus:border-violet-900 focus:outline-none focus:ring-1 focus:ring-violet-900"
+            />
+            <p id="modal-design-error" class="mt-2 hidden text-xs font-medium text-red-600"></p>
+            <div id="modal-design-preview" class="mt-3 hidden">
+              <p class="mb-2 text-[11px] font-medium text-neutral-500">คลิกรูปเพื่อดูขนาดเต็ม</p>
+              <button
+                type="button"
+                id="modal-design-thumb-btn"
+                class="group relative inline-block max-w-full rounded-xl border border-violet-200 bg-white p-1 text-left shadow-sm transition hover:border-violet-400 hover:shadow"
+              >
+                <img
+                  id="modal-design-thumb"
+                  alt="แบบร่างรอยสัก"
+                  class="mx-auto max-h-32 w-auto max-w-full rounded-lg object-contain"
+                />
+                <span
+                  class="pointer-events-none absolute bottom-2 right-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100"
+                  >ขยาย</span
+                >
+              </button>
+            </div>
+            <label for="modal-artist-notes" class="mt-4 mb-1 block text-xs font-medium text-neutral-700"
+              >โน้ตจากศิลปิน (Artist Notes)</label
+            >
+            <textarea
+              id="modal-artist-notes"
+              rows="3"
+              class="w-full rounded-lg border border-violet-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-violet-900 focus:outline-none focus:ring-1 focus:ring-violet-900"
+              placeholder="อธิบายแนวทางออกแบบ จุดที่ปรับจากเรฟ ฯลฯ"
+            ></textarea>
+            <div
+              id="modal-design-delay-wrap"
+              class="mt-4 hidden rounded-xl border border-red-300 bg-red-50/95 px-4 py-3 shadow-sm"
+            >
+              <label for="modal-design-delay-reason" class="mb-1 block text-xs font-semibold text-red-950"
+                >สาเหตุที่ส่งแบบล่าช้า (Reason for Delay)</label
+              >
+              <p class="mb-2 text-[11px] leading-relaxed text-red-900/90">
+                แสดงเมื่องานเกินกำหนด SLA — ต้องกรอกก่อนบันทึกแบบร่างเพื่อไป «รอนัดคิว» หรือก่อนเปลี่ยนสถานะเป็น «รอนัดคิว»
+              </p>
+              <textarea
+                id="modal-design-delay-reason"
+                rows="2"
+                class="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-red-700 focus:outline-none focus:ring-1 focus:ring-red-700"
+                placeholder="เช่น รอลูกค้าคอนเฟิร์มแบบ / งานซับซ้อน ฯลฯ"
+              ></textarea>
+              <button
+                type="button"
+                id="modal-btn-save-design-delay"
+                class="mt-2 w-full rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-900 transition hover:bg-red-50"
+              >
+                บันทึกสาเหตุลงระบบ
+              </button>
+            </div>
+            <div id="modal-customer-design-notify-wrap" class="mt-4 hidden rounded-xl border border-sky-200 bg-sky-50 px-4 py-3.5 shadow-sm">
+              <label class="flex cursor-pointer items-start gap-3.5">
+                <input
+                  type="checkbox"
+                  id="modal-customer-design-notified"
+                  class="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-sky-400 text-violet-900 focus:ring-2 focus:ring-violet-800"
+                />
+                <span class="select-none text-sm font-semibold leading-snug text-sky-950"
+                  >✅ แจ้งอัปเดตแบบให้ลูกค้าเรียบร้อยแล้ว</span
+                >
+              </label>
+              <p class="mt-2 pl-8 text-[11px] leading-relaxed text-sky-800/90">
+                ติ๊กเมื่อส่งแบบร่างหรืออัปเดตให้ลูกค้าทางช่องทางของร้านแล้ว — บันทึกคู่กับปุ่ม «บันทึกแบบร่าง» ด้านล่าง
+              </p>
+            </div>
+            <button
+              type="button"
+              id="modal-btn-save-design"
+              class="mt-4 w-full rounded-xl bg-violet-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-800"
+            >
+              บันทึกแบบร่าง
+            </button>
+          </section>
+
+          <section id="modal-cot-section" class="mt-6 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-neutral-900">หลักฐานการโอนยอดคงเหลือ (COT)</h3>
+            <p class="mt-1 text-xs text-neutral-500">
+              เลือกรูปสลิปโอนยอดคงเหลือ แล้วกด <span class="font-medium text-neutral-800">บันทึก</span> — ระบบจะบันทึกสลิปและตั้งสถานะเป็น
+              <span class="font-medium text-neutral-800">เข้ารับบริการแล้ว</span> โดยอัตโนมัติ
+            </p>
+            <div class="mt-4">
+              <label for="modal-cot-amount" class="mb-1 block text-xs font-medium text-neutral-600"
+                >ยอดโอนคงเหลือ (COT Amount)</label
+              >
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-neutral-600">฿</span>
+                <input
+                  id="modal-cot-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="0"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+            </div>
+            <input
+              id="modal-cot-file"
+              type="file"
+              accept="image/*"
+              class="mt-3 block w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            />
+            <p id="modal-cot-error" class="mt-2 hidden text-xs font-medium text-red-600"></p>
+            <div id="modal-cot-preview" class="mt-4 hidden">
+              <p class="mb-2 text-[11px] font-medium text-neutral-500">คลิกรูปเพื่อดูขนาดเต็ม</p>
+              <button
+                type="button"
+                id="modal-cot-thumb-btn"
+                class="group relative inline-block max-w-full rounded-xl border border-neutral-200 bg-neutral-100 p-1 text-left shadow-sm transition hover:border-neutral-400 hover:shadow"
+              >
+                <img
+                  id="modal-cot-thumb"
+                  alt="สลิป COT"
+                  class="mx-auto max-h-28 w-auto max-w-full rounded-lg object-contain"
+                />
+                <span
+                  class="pointer-events-none absolute bottom-2 right-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100"
+                  >ขยาย</span
+                >
+              </button>
+            </div>
+            <button
+              type="button"
+              id="modal-btn-save-cot"
+              class="mt-4 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800"
+            >
+              บันทึก
+            </button>
+          </section>
+
+          <section
+            id="modal-revenue-summary"
+            class="mt-6 rounded-xl border-2 border-neutral-900 bg-neutral-50 p-4"
+          >
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">ยอดรวมรายได้ (Total Revenue)</p>
+            <p class="mt-1 text-xs text-neutral-500">มัดจำ + COT อัปเดตทันทีเมื่อกรอกตัวเลข</p>
+            <p id="modal-total-revenue" class="mt-3 text-2xl font-bold tabular-nums tracking-tight text-neutral-950">
+              ฿0
+            </p>
+          </section>
+        </div>
+        <div class="border-t border-neutral-100 bg-neutral-50/80 px-5 py-2.5">
+          <p id="modal-audit-line" class="hidden text-[11px] leading-relaxed text-neutral-500"></p>
+        </div>
+        <div class="flex flex-col gap-2 border-t border-neutral-100 bg-neutral-50/80 px-5 py-4 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            id="modal-btn-save-appt"
+            class="order-2 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:order-1 sm:w-auto"
+          >
+            บันทึกคิวนัดหมาย
+          </button>
+          <button
+            type="button"
+            id="modal-btn-close"
+            class="order-1 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 sm:order-2 sm:w-auto"
+          >
+            ปิด
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lightbox ดูสลิปมัดจำเต็มจอ -->
+    <div
+      id="slip-lightbox"
+      class="fixed inset-0 z-[60] hidden items-center justify-center p-4"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-label="ดูภาพขนาดเต็ม"
+    >
+      <div id="slip-lightbox-backdrop" class="absolute inset-0 bg-black/85 backdrop-blur-sm"></div>
+      <button
+        type="button"
+        id="slip-lightbox-close"
+        class="absolute right-4 top-4 z-10 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20"
+      >
+        ปิด
+      </button>
+      <img
+        id="slip-lightbox-img"
+        alt="ภาพขนาดเต็ม"
+        class="relative z-[1] max-h-[min(92vh,900px)] max-w-[min(96vw,1200px)] rounded-lg object-contain shadow-2xl"
+      />
+    </div>
+
+    <!-- Modal แจ้งเตือน validation (สถานะ / มัดจำ) -->
+    <div
+      id="validation-modal"
+      class="fixed inset-0 z-[70] hidden items-center justify-center p-4"
+      aria-hidden="true"
+      role="alertdialog"
+      aria-labelledby="validation-modal-title"
+      aria-modal="true"
+    >
+      <div id="validation-modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+      <div
+        class="relative z-10 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl"
+      >
+        <h3 id="validation-modal-title" class="text-base font-semibold text-neutral-950">ไม่สามารถดำเนินการได้</h3>
+        <p id="validation-modal-text" class="mt-3 text-sm leading-relaxed text-neutral-700"></p>
+        <button
+          type="button"
+          id="validation-modal-ok"
+          class="mt-6 w-full rounded-xl bg-neutral-900 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800"
+        >
+          เข้าใจแล้ว
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal กรอกเหตุผล (แก้ไขวันที่ SLA / บังคับข้อความ) -->
+    <div
+      id="reason-modal"
+      class="fixed inset-0 z-[75] hidden items-center justify-center p-4"
+      aria-hidden="true"
+      role="dialog"
+      aria-labelledby="reason-modal-title"
+      aria-modal="true"
+    >
+      <div id="reason-modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+      <div
+        class="relative z-10 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl"
+      >
+        <h3 id="reason-modal-title" class="text-base font-semibold text-neutral-950">กรุณาระบุเหตุผล</h3>
+        <p id="reason-modal-desc" class="mt-2 text-xs leading-relaxed text-neutral-600"></p>
+        <label for="reason-modal-input" class="mt-4 mb-1 block text-xs font-medium text-neutral-700">เหตุผล</label>
+        <textarea
+          id="reason-modal-input"
+          rows="3"
+          class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+          placeholder="พิมพ์เหตุผลที่นี่…"
+        ></textarea>
+        <div class="mt-6 flex flex-col gap-2 sm:flex-row-reverse sm:justify-end">
+          <button
+            type="button"
+            id="reason-modal-confirm"
+            class="w-full rounded-xl bg-neutral-900 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:w-auto sm:min-w-[120px]"
+          >
+            ยืนยัน
+          </button>
+          <button
+            type="button"
+            id="reason-modal-cancel"
+            class="w-full rounded-xl border border-neutral-300 bg-white py-3 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50 sm:w-auto sm:min-w-[120px]"
+          >
+            ยกเลิก
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var AUTH_ROLE_KEY = "jarbtattoo-auth-role";
+        var AUTH_USER_KEY = "jarbtattoo-auth-username";
+        var AUTH_ARTIST_KEY = "jarbtattoo-auth-artist-key";
+
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY) && localStorage.getItem(AUTH_ROLE_KEY)) {
+          sessionStorage.setItem(AUTH_ROLE_KEY, localStorage.getItem(AUTH_ROLE_KEY));
+          sessionStorage.setItem(AUTH_USER_KEY, localStorage.getItem(AUTH_USER_KEY) || "");
+          var _ak = localStorage.getItem(AUTH_ARTIST_KEY);
+          if (_ak) sessionStorage.setItem(AUTH_ARTIST_KEY, _ak);
+        }
+        if (!sessionStorage.getItem(AUTH_ROLE_KEY)) {
+          window.location.replace("login.html");
+          return;
+        }
+
+        function getAuthRole() {
+          return (sessionStorage.getItem(AUTH_ROLE_KEY) || "").toLowerCase();
+        }
+
+        function getRole() {
+          return getAuthRole();
+        }
+
+        function isManager() {
+          return getAuthRole() === "manager";
+        }
+
+        function isArtist() {
+          return getAuthRole() === "artist";
+        }
+
+        function getAuthArtistKey() {
+          return (sessionStorage.getItem(AUTH_ARTIST_KEY) || localStorage.getItem(AUTH_ARTIST_KEY) || "").trim();
+        }
+
+        /** Staff (admin หรือ role กำหนดเอง) — ไม่ข้ามกฎ state machine / ล็อกแก้ไขงานปิดแล้ว */
+        function isAdminRole() {
+          var r = getAuthRole();
+          return !!r && r !== "manager" && r !== "artist";
+        }
+
+        /** ลบ/ยกเลิกรายการจองจากบอร์ด — เฉพาะ manager หรือ admin */
+        function canDeleteBookingRole() {
+          var r = getAuthRole();
+          return r === "manager" || r === "admin";
+        }
+
+        function isBookingForCurrentArtist(b) {
+          if (!b || !isArtist()) return false;
+          var ak = getAuthArtistKey();
+          if (!ak) return false;
+          var key = b.artist != null && String(b.artist).trim() !== "" ? String(b.artist) : "anyone";
+          return key === ak;
+        }
+
+        function getCurrentBookingSnapshot() {
+          if (!currentDetailId) return null;
+          var all = loadBookings();
+          for (var i = 0; i < all.length; i++) {
+            if (all[i].id === currentDetailId) return all[i];
+          }
+          return null;
+        }
+
+        /** งานเข้ารับบริการแล้ว = ล็อกฟอร์มทั้งหมด ยกเว้นหุ้นส่วนผู้จัดการ */
+        function isModalFormLocked() {
+          var b = getCurrentBookingSnapshot();
+          if (!b || isManager()) return false;
+          if (b.status === "service-received") return true;
+          if (b.status === "completed" && isAdminRole()) return true;
+          return false;
+        }
+
+        function notifyModalFormLocked() {
+          showValidationModal(
+            isAdminRole()
+              ? "บัญชี Staff ดูหรือแก้ไขได้ตาม flow เท่านั้น — ไม่สามารถแก้ไขงานที่ปิดหรือเข้ารับบริการแล้วได้ (ติดต่อ Manager)"
+              : "งานนี้ล็อคการแก้ไขแล้ว — เฉพาะหุ้นส่วนผู้จัดการ (Manager) เท่านั้นที่แก้ไขได้"
+          );
+        }
+
+        function isDepositBundleComplete(b) {
+          return !!(b && hasDepositSlip(b) && hasDepositAmountRecorded(b));
+        }
+
+        function hasCotAmountRecorded(b) {
+          return !!(b && b.cotAmount != null && !isNaN(Number(b.cotAmount)));
+        }
+
+        function isCotBundleComplete(b) {
+          return !!(b && hasCotSlip(b) && hasCotAmountRecorded(b));
+        }
+
+        function hasDesignSketch(b) {
+          return !!(b && b.designSketchImage && String(b.designSketchImage).trim().length > 0);
+        }
+
+        function hasAppointmentRecorded(b) {
+          return !!(
+            b &&
+            b.appointmentDate &&
+            String(b.appointmentDate).trim() &&
+            b.appointmentTime &&
+            String(b.appointmentTime).trim()
+          );
+        }
+
+        var MS_DAY = 86400000;
+        var MS_HOUR = 3600000;
+
+        function parseAppointmentStartMs(b) {
+          if (!hasAppointmentRecorded(b)) return null;
+          var parts = String(b.appointmentDate).trim().split("-");
+          if (parts.length !== 3) return null;
+          var y = parseInt(parts[0], 10);
+          var mo = parseInt(parts[1], 10) - 1;
+          var day = parseInt(parts[2], 10);
+          if (isNaN(y) || isNaN(mo) || isNaN(day)) return null;
+          var tRaw = String(b.appointmentTime || "")
+            .trim()
+            .replace(/\s*น\.?$/i, "")
+            .replace(/\./g, ":");
+          var hm = tRaw.match(/^(\d{1,2})\s*:\s*(\d{2})/);
+          var h = hm ? parseInt(hm[1], 10) : 0;
+          var mi = hm ? parseInt(hm[2], 10) : 0;
+          var d = new Date(y, mo, day, h, mi, 0, 0);
+          return isNaN(d.getTime()) ? null : d.getTime();
+        }
+
+        function getDepositSlaAnchorMs(b) {
+          if (!b) return Date.now();
+          if (b.depositSlipUploadedAt) {
+            var t = Date.parse(b.depositSlipUploadedAt);
+            if (!isNaN(t)) return t;
+          }
+          if (b.createdAt) {
+            var c = Date.parse(b.createdAt);
+            if (!isNaN(c)) return c;
+          }
+          return Date.now();
+        }
+
+        function designSlaIsUrgent(b) {
+          return !!(b && b.status === "awaiting-design" && hasAppointmentRecorded(b));
+        }
+
+        function designSlaElapsedDaysFromDeposit(b) {
+          var anchor = getDepositSlaAnchorMs(b);
+          return Math.floor((Date.now() - anchor) / MS_DAY);
+        }
+
+        function designSlaUrgentHoursLeft(b) {
+          var ap = parseAppointmentStartMs(b);
+          if (ap == null) return null;
+          var deadline = ap - 24 * MS_HOUR;
+          return (deadline - Date.now()) / MS_HOUR;
+        }
+
+        /** ป้าย SLA บนการ์ด (รอออกแบบ + มีสลิปมัดจำ) */
+        function getDesignSlaBadgeForCard(b) {
+          if (!b || b.status !== "awaiting-design" || !hasDepositSlip(b)) return null;
+          if (designSlaIsUrgent(b)) {
+            var hLeft = designSlaUrgentHoursLeft(b);
+            if (hLeft == null) return null;
+            var ceilH = Math.ceil(hLeft);
+            if (hLeft > 12) {
+              return {
+                cls: "border-emerald-200 bg-emerald-50 text-emerald-900",
+                text: "⏳ เดดไลน์ : เหลืออีก " + Math.max(1, ceilH) + " ชม.",
+              };
+            }
+            if (hLeft > 6) {
+              return {
+                cls: "border-amber-200 bg-amber-50 text-amber-900",
+                text: "⚠️ เดดไลน์ : เหลืออีก " + Math.max(1, ceilH) + " ชม.",
+              };
+            }
+            if (hLeft > 0) {
+              return {
+                cls: "border-red-300 bg-red-50 text-red-900",
+                text: "🔴 เดดไลน์ : เหลืออีก " + Math.max(1, ceilH) + " ชม.",
+              };
+            }
+            var overdue = Math.ceil(-hLeft);
+            return {
+              cls: "border-red-400 bg-red-100 text-red-950",
+              text: "🔴 เดดไลน์ : เกินกำหนด " + overdue + " ชม.",
+            };
+          }
+          var elapsed = designSlaElapsedDaysFromDeposit(b);
+          var remainingTarget = Math.max(0, Math.ceil((getDepositSlaAnchorMs(b) + 3 * MS_DAY - Date.now()) / MS_DAY));
+          if (elapsed < 3) {
+            return {
+              cls: "border-emerald-200 bg-emerald-50 text-emerald-900",
+              text: "⏳ เดดไลน์: เหลืออีก " + remainingTarget + " วัน",
+            };
+          }
+          if (elapsed < 5) {
+            return { cls: "border-amber-200 bg-amber-50 text-amber-900", text: "⚠️ ส่งแบบเกินกำหนด" };
+          }
+          return { cls: "border-red-400 bg-red-100 text-red-950", text: "🚨 ส่งแบบล่าช้าผิดปกติ!" };
+        }
+
+        function requiresDesignDelayReason(b) {
+          if (!b || b.status !== "awaiting-design") return false;
+          if (!hasDepositSlip(b)) return false;
+          if (designSlaIsUrgent(b)) {
+            var h = designSlaUrgentHoursLeft(b);
+            return h != null && h <= 0;
+          }
+          return designSlaElapsedDaysFromDeposit(b) >= 5;
+        }
+
+        function hasDesignDelayReasonText(b) {
+          return !!(b && b.designDelayReason && String(b.designDelayReason).trim().length > 0);
+        }
+
+        function assertCanAdvanceToAwaitingSlot(row, extraDelayText) {
+          if (!row || row.status !== "awaiting-design") return { ok: true };
+          if (!requiresDesignDelayReason(row)) return { ok: true };
+          var combined =
+            (extraDelayText && String(extraDelayText).trim()) ||
+            (row.designDelayReason && String(row.designDelayReason).trim());
+          if (!combined) {
+            return {
+              ok: false,
+              msg:
+                "⚠️ งานเกินกำหนด SLA — กรุณากรอก «สาเหตุที่ส่งแบบล่าช้า» ในรายละเอียดงาน และกดบันทึกสาเหตุก่อนส่งแบบหรือเปลี่ยนเป็น «รอนัดคิว»",
+            };
+          }
+          return { ok: true };
+        }
+
+        function appendAuditTrail(row, message) {
+          if (!row || !message) return;
+          if (!row.auditTrail) row.auditTrail = [];
+          row.auditTrail.push({
+            at: new Date().toISOString(),
+            by: getAuditEditorLabel(),
+            message: String(message).trim(),
+          });
+        }
+
+        /** กฎ 3 / 5: ล็อค Dropdown สถานะบนการ์ดและใน Modal (ยกเว้น Manager) */
+        function shouldDisableStatusSelect(b) {
+          if (!b || isManager()) return false;
+          if (isArtist()) return true;
+          if (b.status === "completed" || b.status === "service-received") return true;
+          if (b.status === "awaiting-slot" && !hasAppointmentRecorded(b)) return true;
+          return false;
+        }
+
+        /** กฎข้อ 1: มัดจำ + สลิปครบ → รอออกแบบ */
+        function tryAutoAdvanceDepositStep(row) {
+          if (!row || !isDepositBundleComplete(row)) return;
+          if (row.status === "pending-review" || row.status === "awaiting-deposit") {
+            row.status = "awaiting-design";
+          }
+        }
+
+        /** กฎข้อ 2: บันทึกแบบร่าง → รอนัดคิว */
+        function applyStatusAfterDesignSave(row) {
+          if (!row) return;
+          if (row.status === "completed" || row.status === "service-received") return;
+          if (row.status === "awaiting-design") {
+            row.status = "awaiting-slot";
+            return;
+          }
+          if (row.status === "awaiting-slot") return;
+          if (isManager()) row.status = "awaiting-slot";
+        }
+
+        /** Manager จาก «รอออกแบบ» ไป «รอนัดคิว» ได้โดยไม่บังคับแบบร่าง — Admin/role อื่นไม่ข้ามกฎ */
+        function canManagerSkipDesignFromAwaitingDesign(b, statusKey) {
+          return (
+            isManager() &&
+            b &&
+            b.status === "awaiting-design" &&
+            statusKey === "awaiting-slot"
+          );
+        }
+
+        /** มีวันเวลานัดในระบบแล้ว → ห้ามเลือก «รอนัดคิว» จากสถานะอื่น (รวม Manager); ยกเว้นอยู่ «รอนัดคิว» อยู่แล้ว — ขั้นรอนัดคิวจากรอออกแบบใช้การบันทึกแบบร่างตาม flow เดิม */
+        function cannotPickAwaitingSlotIfAppointmentSaved(b, statusKey) {
+          if (statusKey !== "awaiting-slot" || !b) return false;
+          if (b.status === "awaiting-slot") return false;
+          return hasAppointmentRecorded(b);
+        }
+
+        /** ตัวเลือกใน Dropdown สถานะ (การ์ด + Modal) — «นัดคิวสำเร็จ» ต้องมีแบบร่าง + สลิปมัดจำ + วันนัดครบ (รวม Manager); Manager bypass เฉพาะสถานะอื่น */
+        function includeStatusInDropdown(b, statusKey) {
+          if (statusKey === b.status) return true;
+          if (cannotPickAwaitingSlotIfAppointmentSaved(b, statusKey)) return false;
+          if (statusKey === "completed") {
+            if (!hasDesignSketch(b) || !hasDepositSlip(b) || !hasAppointmentRecorded(b)) return false;
+          }
+          if (isManager()) return true;
+          if (isCotBundleComplete(b)) {
+            return statusKey === "service-received";
+          }
+          if (b.status === "completed") {
+            return false;
+          }
+          if (b.status === "awaiting-slot" && !hasAppointmentRecorded(b)) {
+            return false;
+          }
+          if (
+            statusKey === "awaiting-slot" &&
+            !hasDesignSketch(b) &&
+            !canManagerSkipDesignFromAwaitingDesign(b, statusKey)
+          ) {
+            return false;
+          }
+          if (statusKey === "service-received" && !hasCotSlip(b)) {
+            return false;
+          }
+          if (isDepositBundleComplete(b)) {
+            if (statusKey === "pending-review" || statusKey === "awaiting-deposit") return false;
+          }
+          var needDepositSlip = ["awaiting-design", "awaiting-slot", "completed"].indexOf(statusKey) !== -1;
+          if (needDepositSlip && !hasDepositSlip(b)) return false;
+          return true;
+        }
+
+        function syncModalStatusSelect(b) {
+          if (!modalStatusSelect || !b) return;
+          modalStatusSelect.innerHTML = "";
+          STATUSES.forEach(function (s) {
+            if (!includeStatusInDropdown(b, s.key)) return;
+            var opt = document.createElement("option");
+            opt.value = s.key;
+            opt.textContent = s.label;
+            if (s.key === b.status) opt.selected = true;
+            modalStatusSelect.appendChild(opt);
+          });
+          if (modalStatusSelect.options.length === 0) {
+            var ox = document.createElement("option");
+            ox.value = b.status || "pending-review";
+            ox.textContent = statusLabel(b.status);
+            modalStatusSelect.appendChild(ox);
+          } else {
+            modalStatusSelect.value = b.status || "";
+            if (modalStatusSelect.value !== b.status && b.status) {
+              var o2 = document.createElement("option");
+              o2.value = b.status;
+              o2.textContent = statusLabel(b.status);
+              modalStatusSelect.appendChild(o2);
+              modalStatusSelect.value = b.status;
+            }
+          }
+          modalStatusSelect.disabled = shouldDisableStatusSelect(b);
+        }
+
+        function applyModalEditLocks() {
+          var b = getCurrentBookingSnapshot();
+          var ban = document.getElementById("modal-readonly-banner");
+          var els = [
+            modalApptDate,
+            modalApptTime,
+            modalDepositAmount,
+            modalCotAmount,
+            modalDepositFile,
+            modalCotFile,
+            modalDepositRemove,
+            modalBtnSaveAppt,
+            modalBtnConfirmAppt,
+            modalBtnCancelConfirm,
+            modalBtnSaveCot,
+            modalDesignFile,
+            modalArtistNotes,
+            modalBtnSaveDesign,
+            modalDesignDelayReason,
+            modalBtnSaveDesignDelay,
+            modalDepositSlaDatetime,
+            modalBtnSaveDepositSla,
+            modalInternalNotes,
+            modalBtnSaveInternalNotes,
+          ];
+
+          function setAll(disable) {
+            for (var i = 0; i < els.length; i++) {
+              if (els[i]) els[i].disabled = disable;
+            }
+          }
+
+          if (isArtist() && b) {
+            if (!isBookingForCurrentArtist(b)) {
+              setAll(true);
+              if (ban) {
+                ban.textContent =
+                  "คุณเป็นศิลปิน — ดูได้เฉพาะงานที่มอบหมายให้คุณเท่านั้น (งานนี้ไม่ใช่ของคุณ)";
+                ban.classList.remove("hidden");
+              }
+              if (modalStatusSelect) modalStatusSelect.disabled = true;
+              syncModalCustomerControls();
+              syncCustomerDesignNotifyCheckbox(b);
+              syncModalStatusSelect(b);
+              updateAuditDisplay(b);
+              return;
+            }
+            if (b.status === "completed" || b.status === "service-received") {
+              setAll(true);
+              if (ban) {
+                ban.textContent = "งานนี้ปิดหรือเสร็จสมบูรณ์แล้ว — ศิลปินไม่สามารถแก้ไขได้";
+                ban.classList.remove("hidden");
+              }
+              if (modalStatusSelect) modalStatusSelect.disabled = true;
+              syncModalCustomerControls();
+              syncCustomerDesignNotifyCheckbox(b);
+              syncModalStatusSelect(b);
+              updateAuditDisplay(b);
+              return;
+            }
+            setAll(true);
+              var allow = [
+                modalDesignFile,
+                modalArtistNotes,
+                modalBtnSaveDesign,
+                modalDesignDelayReason,
+                modalBtnSaveDesignDelay,
+                modalCustomerDesignNotified,
+              ];
+              for (var j = 0; j < allow.length; j++) {
+                if (allow[j]) allow[j].disabled = false;
+              }
+              if (ban) {
+                ban.textContent =
+                  "โหมดศิลปิน — แก้ไขได้เฉพาะส่วนแบบร่างและโน้ตศิลปิน (Artist Workspace) เท่านั้น";
+                ban.classList.remove("hidden");
+              }
+              syncModalCustomerControls();
+              syncCustomerDesignNotifyCheckbox(b);
+              if (modalStatusSelect) modalStatusSelect.disabled = true;
+              updateAuditDisplay(b);
+              return;
+          }
+
+          var lock = isModalFormLocked();
+          setAll(lock);
+          if (lock && modalBtnSaveDesign && b && hasDesignSketch(b)) {
+            modalBtnSaveDesign.disabled = false;
+          }
+          if (ban) {
+            ban.textContent =
+              "โหมดดูอย่างเดียว — งานปิดแล้ว (เข้ารับบริการแล้ว) บัญชี Admin ไม่สามารถแก้ไขได้";
+            ban.classList.toggle("hidden", !lock);
+          }
+          syncModalCustomerControls();
+          syncCustomerDesignNotifyCheckbox(b);
+          syncModalStatusSelect(b);
+          updateAuditDisplay(getCurrentBookingSnapshot());
+        }
+
+        function updateAuthHeader() {
+          var u = sessionStorage.getItem(AUTH_USER_KEY) || "";
+          var role = getRole();
+          var userLine = document.getElementById("auth-user-line");
+          var roleLine = document.getElementById("auth-role-line");
+          if (userLine) userLine.textContent = u || "—";
+          if (roleLine) roleLine.textContent = role ? "สิทธิ์: " + role : "";
+
+          var linkUsers = document.getElementById("link-manage-users");
+          if (linkUsers) linkUsers.classList.toggle("hidden", !isManager());
+        }
+
+        var STORAGE_KEY = "jarbtattoo-bookings-v1";
+        var AVAILABILITY_STORAGE_KEY = "jarbtattoo-artist-availability";
+        var USERS_LIST_KEY = "usersList";
+
+        function loadAvailabilityListAdmin() {
+          try {
+            var raw = localStorage.getItem(AVAILABILITY_STORAGE_KEY);
+            var a = raw ? JSON.parse(raw) : [];
+            return Array.isArray(a) ? a : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function dateStrInRangeAdmin(dStr, startStr, endStr) {
+          if (!dStr || !startStr) return false;
+          var end = endStr || startStr;
+          var d = new Date(dStr + "T12:00:00").getTime();
+          var s = new Date(startStr + "T12:00:00").getTime();
+          var e = new Date(end + "T12:00:00").getTime();
+          if (isNaN(d) || isNaN(s) || isNaN(e)) return false;
+          return d >= s && d <= e;
+        }
+
+        function appointmentDateHitsDayOffForArtist(artistKey, dateStr) {
+          if (!artistKey || artistKey === "anyone" || !dateStr) return false;
+          var list = loadAvailabilityListAdmin();
+          for (var i = 0; i < list.length; i++) {
+            var e = list[i];
+            if (!e || e.artistKey !== artistKey || e.type !== "dayoff") continue;
+            if (dateStrInRangeAdmin(dateStr, e.dateStart, e.dateEnd || e.dateStart)) return true;
+          }
+          return false;
+        }
+
+        function appointmentDateHitsTentativeForArtist(artistKey, dateStr) {
+          if (!artistKey || artistKey === "anyone" || !dateStr) return false;
+          var list = loadAvailabilityListAdmin();
+          for (var i = 0; i < list.length; i++) {
+            var e = list[i];
+            if (!e || e.artistKey !== artistKey || e.type !== "tentative") continue;
+            if (dateStrInRangeAdmin(dateStr, e.dateStart, e.dateEnd || e.dateStart)) return true;
+          }
+          return false;
+        }
+
+        /** คีย์ศิลปินต้องตรงกับ index.html — ใช้ป้ายและตัวกรอง */
+        var ARTISTS = [
+          { key: "anyone", badge: "ยังไม่มีในใจ (Anyone)" },
+          { key: "mr-bac", badge: "Mr.Bac" },
+          { key: "sra", badge: "Sra" },
+          { key: "senshin", badge: "Senshin" },
+          { key: "studiochi", badge: "STUDIOCHI" },
+        ];
+
+        var STATUSES = [
+          { key: "pending-review", label: "ส่งคำขอ (รอตรวจสอบ)" },
+          { key: "awaiting-deposit", label: "รอโอนมัดจำ" },
+          { key: "awaiting-design", label: "รอออกแบบ" },
+          { key: "awaiting-slot", label: "รอนัดคิว" },
+          { key: "completed", label: "นัดคิวสำเร็จ" },
+          { key: "service-received", label: "เข้ารับบริการแล้ว" },
+        ];
+
+        /** ตรงกับ index.html — ใช้เลือกตำแหน่งใน Modal (Manager) */
+        var PLACEMENT_OPTIONS = [
+          { value: "forearm", th: "Forearm (แขนท่อนล่าง)", en: "Forearm" },
+          { value: "inner-arm", th: "Inner Arm (ท้องแขน)", en: "Inner Arm" },
+          { value: "upper-arm", th: "Upper Arm (ต้นแขน)", en: "Upper Arm" },
+          { value: "shoulder", th: "Shoulder (ไหล่)", en: "Shoulder" },
+          { value: "bicep", th: "Bicep (กล้ามแขนด้านหน้า)", en: "Bicep" },
+          { value: "thigh", th: "Thigh (ต้นขา)", en: "Thigh" },
+          { value: "upper-back", th: "Upper Back (หลังส่วนบน)", en: "Upper Back" },
+          { value: "wrist", th: "Wrist (ข้อมือ)", en: "Wrist" },
+          { value: "calf", th: "Calf (น่อง)", en: "Calf" },
+          { value: "half-sleeve", th: "Half Sleeve (แขนเสื้อครึ่งท่อน)", en: "Half Sleeve" },
+          { value: "shoulder-blade", th: "Shoulder Blade (สะบัก)", en: "Shoulder Blade" },
+          { value: "leg", th: "Leg (ขา)", en: "Leg" },
+          { value: "hip", th: "Hip (สะโพก)", en: "Hip" },
+          { value: "chest", th: "Chest (หน้าอก)", en: "Chest" },
+          { value: "arm", th: "Arm (แขน)", en: "Arm" },
+          { value: "side-flank", th: "Side (Flank) (ข้างลำตัว)", en: "Side (Flank)" },
+          { value: "rib", th: "Rib (ซี่โครง)", en: "Rib" },
+          { value: "back-of-hand", th: "Back of Hand (หลังมือ)", en: "Back of Hand" },
+          { value: "shin", th: "Shin (หน้าแข้ง)", en: "Shin" },
+          { value: "ankle", th: "Ankle (ข้อเท้า)", en: "Ankle" },
+          { value: "hand", th: "Hand (มือ)", en: "Hand" },
+          {
+            value: "collarbone-clavicle",
+            th: "Collarbone (Clavicle) (กระดูกไหปลาร้า)",
+            en: "Collarbone (Clavicle)",
+          },
+          { value: "collarbone", th: "Collarbone (ไหปลาร้า)", en: "Collarbone" },
+          { value: "spine", th: "Spine (กระดูกสันหลัง)", en: "Spine" },
+          { value: "back", th: "Back (หลัง)", en: "Back" },
+          { value: "nape", th: "Nape (ท้ายทอย)", en: "Nape" },
+          { value: "neck", th: "Neck (คอ)", en: "Neck" },
+          { value: "finger", th: "Finger (นิ้วมือ)", en: "Finger" },
+          { value: "sleeve", th: "Sleeve (แขนเสื้อ/รอยสักเต็มแขน)", en: "Sleeve" },
+          { value: "sternum", th: "Sternum (กระดูกลิ้นปี่)", en: "Sternum" },
+          { value: "behind-ear", th: "Behind the Ear (หลังใบหู)", en: "Behind the Ear" },
+          { value: "foot", th: "Foot (เท้า)", en: "Foot" },
+          { value: "stomach", th: "Stomach (หน้าท้อง)", en: "Stomach" },
+          { value: "cleavage", th: "Cleavage (ร่องอก)", en: "Cleavage" },
+          { value: "lower-abdomen", th: "Lower Abdomen (ท้องน้อย)", en: "Lower Abdomen" },
+          { value: "inner-elbow", th: "Inner Elbow (ข้อพับแขน)", en: "Inner Elbow" },
+          { value: "inner-thigh", th: "Inner Thigh (ต้นขาด้านใน)", en: "Inner Thigh" },
+          { value: "butt", th: "Butt (ก้น)", en: "Butt" },
+          { value: "armpit", th: "Armpit (รักแร้)", en: "Armpit" },
+          { value: "back-of-neck", th: "Back of Neck (หลังคอ)", en: "Back of Neck" },
+          { value: "behind-knee", th: "Behind the Knee (ข้อพับเข่า)", en: "Behind the Knee" },
+          { value: "knee", th: "Knee (เข่า)", en: "Knee" },
+          { value: "lower-back", th: "Lower Back (หลังส่วนล่าง)", en: "Lower Back" },
+          { value: "elbow", th: "Elbow (ข้อศอก)", en: "Elbow" },
+          { value: "head", th: "Head (หัว)", en: "Head" },
+          {
+            value: "navel",
+            th: "Navel (Belly Button) (สะดือ)",
+            en: "Navel (Belly Button)",
+          },
+          { value: "scalp", th: "Scalp (หนังศีรษะ)", en: "Scalp" },
+          { value: "belly-button", th: "Belly Button (สะดือ)", en: "Belly Button" },
+          { value: "pelvic", th: "Pelvic (อุ้งเชิงกราน)", en: "Pelvic" },
+          { value: "temple", th: "Temple (ขมับ)", en: "Temple" },
+          { value: "underbust", th: "Underbust (ใต้ราวนม)", en: "Underbust" },
+        ];
+
+        var kanbanEl = document.getElementById("kanban");
+        var boardEmptyEl = document.getElementById("board-empty");
+        var btnRefresh = document.getElementById("btn-refresh");
+
+        var detailModal = document.getElementById("detail-modal");
+        var detailBackdrop = document.getElementById("detail-modal-backdrop");
+        var modalImages = document.getElementById("modal-images");
+        var modalFullName = document.getElementById("modal-full-name");
+        var modalPhone = document.getElementById("modal-phone");
+        var modalArtist = document.getElementById("modal-artist");
+        var modalSize = document.getElementById("modal-size");
+        var modalInkStyle = document.getElementById("modal-ink-style");
+        var modalPlacement = document.getElementById("modal-placement");
+        var modalStatusSelect = document.getElementById("modal-status-select");
+        var modalDetails = document.getElementById("modal-details");
+        var modalCreated = document.getElementById("modal-created");
+        var modalApptDate = document.getElementById("modal-appt-date");
+        var modalApptTime = document.getElementById("modal-appt-time");
+        var modalApptError = document.getElementById("modal-appt-error");
+        var modalApptDisplay = document.getElementById("modal-appt-display");
+        var modalApptConfirm = document.getElementById("modal-appt-confirm");
+        var modalApptConfirmPreview = document.getElementById("modal-appt-confirm-preview");
+        var modalBtnSaveAppt = document.getElementById("modal-btn-save-appt");
+        var modalBtnConfirmAppt = document.getElementById("modal-btn-confirm-appt");
+        var modalBtnCancelConfirm = document.getElementById("modal-btn-cancel-confirm");
+        var modalBtnClose = document.getElementById("modal-btn-close");
+
+        var modalDepositFile = document.getElementById("modal-deposit-file");
+        var modalDepositPreview = document.getElementById("modal-deposit-preview");
+        var modalDepositThumb = document.getElementById("modal-deposit-thumb");
+        var modalDepositThumbBtn = document.getElementById("modal-deposit-thumb-btn");
+        var modalDepositRemove = document.getElementById("modal-deposit-remove");
+        var modalDepositError = document.getElementById("modal-deposit-error");
+        var modalDepositAmount = document.getElementById("modal-deposit-amount");
+
+        var modalCotFile = document.getElementById("modal-cot-file");
+        var modalCotPreview = document.getElementById("modal-cot-preview");
+        var modalCotThumb = document.getElementById("modal-cot-thumb");
+        var modalCotThumbBtn = document.getElementById("modal-cot-thumb-btn");
+        var modalCotError = document.getElementById("modal-cot-error");
+        var modalBtnSaveCot = document.getElementById("modal-btn-save-cot");
+        var modalCotAmount = document.getElementById("modal-cot-amount");
+        var modalTotalRevenue = document.getElementById("modal-total-revenue");
+
+        var modalDesignFile = document.getElementById("modal-design-file");
+        var modalDesignPreview = document.getElementById("modal-design-preview");
+        var modalDesignThumb = document.getElementById("modal-design-thumb");
+        var modalDesignThumbBtn = document.getElementById("modal-design-thumb-btn");
+        var modalDesignError = document.getElementById("modal-design-error");
+        var modalArtistNotes = document.getElementById("modal-artist-notes");
+        var modalInternalNotes = document.getElementById("modal-internal-notes");
+        var modalBtnSaveInternalNotes = document.getElementById("modal-btn-save-internal-notes");
+        var modalBtnSaveDesign = document.getElementById("modal-btn-save-design");
+        var modalCustomerDesignNotified = document.getElementById("modal-customer-design-notified");
+        var modalCustomerDesignNotifyWrap = document.getElementById("modal-customer-design-notify-wrap");
+
+        var modalEditFullName = document.getElementById("modal-edit-full-name");
+        var modalEditDetails = document.getElementById("modal-edit-details");
+        var modalEditWidthCm = document.getElementById("modal-edit-width-cm");
+        var modalEditHeightCm = document.getElementById("modal-edit-height-cm");
+        var modalEditPlacement = document.getElementById("modal-edit-placement");
+        var modalEditPlacementOther = document.getElementById("modal-edit-placement-other");
+        var modalEditSizeWrap = document.getElementById("modal-edit-size-wrap");
+        var modalEditPlacementWrap = document.getElementById("modal-edit-placement-wrap");
+        var modalPlacementOtherWrap = document.getElementById("modal-placement-other-wrap");
+        var modalSaveCustomerWrap = document.getElementById("modal-save-customer-wrap");
+        var modalBtnSaveCustomer = document.getElementById("modal-btn-save-customer");
+        var modalAuditLine = document.getElementById("modal-audit-line");
+        var modalDesignDelayWrap = document.getElementById("modal-design-delay-wrap");
+        var modalDesignDelayReason = document.getElementById("modal-design-delay-reason");
+        var modalBtnSaveDesignDelay = document.getElementById("modal-btn-save-design-delay");
+        var modalDepositSlaWrap = document.getElementById("modal-deposit-sla-wrap");
+        var modalDepositSlaDatetime = document.getElementById("modal-deposit-sla-datetime");
+        var modalBtnSaveDepositSla = document.getElementById("modal-btn-save-deposit-sla");
+        var reasonModal = document.getElementById("reason-modal");
+        var reasonModalBackdrop = document.getElementById("reason-modal-backdrop");
+        var reasonModalTitle = document.getElementById("reason-modal-title");
+        var reasonModalDesc = document.getElementById("reason-modal-desc");
+        var reasonModalInput = document.getElementById("reason-modal-input");
+        var reasonModalConfirm = document.getElementById("reason-modal-confirm");
+        var reasonModalCancel = document.getElementById("reason-modal-cancel");
+        var reasonModalCallback = null;
+
+        var slipLightbox = document.getElementById("slip-lightbox");
+        var slipLightboxBackdrop = document.getElementById("slip-lightbox-backdrop");
+        var slipLightboxImg = document.getElementById("slip-lightbox-img");
+        var slipLightboxClose = document.getElementById("slip-lightbox-close");
+
+        var validationModal = document.getElementById("validation-modal");
+        var validationModalBackdrop = document.getElementById("validation-modal-backdrop");
+        var validationModalText = document.getElementById("validation-modal-text");
+        var validationModalOk = document.getElementById("validation-modal-ok");
+
+        var filterArtistEl = document.getElementById("filter-artist");
+        var filterEmptyEl = document.getElementById("filter-empty");
+
+        /** ค่าตัวกรอง: 'all' | คีย์ศิลปิน */
+        var filterArtistKey = "all";
+
+        var currentDetailId = null;
+
+        function statusLabel(key) {
+          if (key === "cancelled") return "ยกเลิกแล้ว (ซ่อนจากบอร์ด)";
+          if (key === "archived") return "เก็บถังขยะ";
+          var found = STATUSES.find(function (s) {
+            return s.key === key;
+          });
+          return found ? found.label : key || "—";
+        }
+
+        function loadBookings() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            var arr = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(arr)) return [];
+            return arr.map(function (b) {
+              if (!b || typeof b !== "object") return b;
+              if (b.status === "designing") b.status = "awaiting-design";
+              if (
+                !b.status ||
+                (!STATUSES.some(function (s) {
+                  return s.key === b.status;
+                }) &&
+                  b.status !== "cancelled" &&
+                  b.status !== "archived")
+              ) {
+                b.status = "pending-review";
+              }
+              if (b.depositSlipImage && String(b.depositSlipImage).trim() && !b.depositSlipUploadedAt) {
+                var guess = b.createdAt || b.lastEditedAt;
+                b.depositSlipUploadedAt = guess && !isNaN(Date.parse(guess)) ? guess : new Date().toISOString();
+              }
+              return b;
+            });
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function saveBookings(bookings) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+          if (typeof JarbtattooSheetsStorage !== "undefined" && JarbtattooSheetsStorage.syncAfterLocalWrite) {
+            JarbtattooSheetsStorage.syncAfterLocalWrite(STORAGE_KEY, bookings);
+          }
+        }
+
+        /**
+         * Soft delete: ตั้ง status เป็น cancelled (ยังอยู่ใน localStorage + Sheets)
+         * การ์ดจะหายจากบอร์ดหลัก — ไม่ลบออกจาก array
+         */
+        function deleteBooking(bookingId) {
+          var id = bookingId != null ? String(bookingId) : "";
+          if (!id) return;
+          var all = loadBookings();
+          var found = false;
+          var next = all.map(function (b) {
+            if (!b || String(b.id) !== id) return b;
+            found = true;
+            var copy = Object.assign({}, b);
+            copy.status = "cancelled";
+            copy.cancelledAt = new Date().toISOString();
+            return copy;
+          });
+          if (!found) return;
+          saveBookings(next);
+          if (currentDetailId === id) closeDetailModal();
+          renderBoard();
+        }
+
+        function formatShortDate(iso) {
+          if (!iso) return "—";
+          try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return "—";
+            return d.toLocaleString("th-TH", {
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          } catch (e) {
+            return "—";
+          }
+        }
+
+        /** แสดงวัน–เวลานัดบนการ์ด (ภาษาไทย) */
+        function formatAppointmentBadge(b) {
+          if (!b.appointmentDate || !b.appointmentTime) return "";
+          var parts = b.appointmentDate.split("-");
+          if (parts.length !== 3) {
+            return b.appointmentDate + " เวลา " + b.appointmentTime + " น.";
+          }
+          var y = parseInt(parts[0], 10);
+          var m = parseInt(parts[1], 10) - 1;
+          var day = parseInt(parts[2], 10);
+          var d = new Date(y, m, day);
+          if (isNaN(d.getTime())) {
+            return b.appointmentDate + " เวลา " + b.appointmentTime + " น.";
+          }
+          var dateStr = d.toLocaleDateString("th-TH", {
+            weekday: "short",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          return dateStr + " · " + b.appointmentTime + " น.";
+        }
+
+        /** แสดงในรายละเอียดคำขอ (บล็อกด้านบน) */
+        function formatAppointmentSummaryForDetail(b) {
+          if (!b || !b.appointmentDate || !b.appointmentTime) {
+            return "ยังไม่ได้บันทึกนัดหมาย";
+          }
+          var line = formatAppointmentBadge(b);
+          return line || b.appointmentDate + " · " + b.appointmentTime + " น.";
+        }
+
+        function hideApptConfirmPanel() {
+          if (modalApptConfirm) modalApptConfirm.classList.add("hidden");
+        }
+
+        function readFileAsDataURL(file) {
+          return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () {
+              resolve(reader.result);
+            };
+            reader.onerror = function () {
+              reject(reader.error);
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        function closeSlipLightbox() {
+          if (!slipLightbox) return;
+          slipLightbox.classList.add("hidden");
+          slipLightbox.classList.remove("flex");
+          slipLightbox.setAttribute("aria-hidden", "true");
+          if (slipLightboxImg) slipLightboxImg.removeAttribute("src");
+        }
+
+        function hasDepositSlip(b) {
+          return !!(b && b.depositSlipImage && String(b.depositSlipImage).trim().length > 0);
+        }
+
+        function hasCotSlip(b) {
+          return !!(b && b.cotSlipImage && String(b.cotSlipImage).trim().length > 0);
+        }
+
+        function revokeCotPreviewUrl() {
+          if (cotPreviewObjectUrl) {
+            URL.revokeObjectURL(cotPreviewObjectUrl);
+            cotPreviewObjectUrl = null;
+          }
+        }
+
+        function revokeDesignPreviewUrl() {
+          if (designPreviewObjectUrl) {
+            URL.revokeObjectURL(designPreviewObjectUrl);
+            designPreviewObjectUrl = null;
+          }
+        }
+
+        function updateCotSlipUI(b) {
+          if (modalCotError) {
+            modalCotError.classList.add("hidden");
+            modalCotError.textContent = "";
+          }
+          if (modalCotFile) modalCotFile.value = "";
+          revokeCotPreviewUrl();
+          var has = b && hasCotSlip(b);
+          if (modalCotPreview) modalCotPreview.classList.toggle("hidden", !has);
+          if (modalCotThumb && has) modalCotThumb.src = b.cotSlipImage;
+          if (modalCotThumb && !has) modalCotThumb.removeAttribute("src");
+        }
+
+        function syncCustomerDesignNotifyCheckbox(b) {
+          b = b || getCurrentBookingSnapshot();
+          if (!modalCustomerDesignNotifyWrap || !modalCustomerDesignNotified) return;
+          var show = !!(b && hasDesignSketch(b));
+          modalCustomerDesignNotifyWrap.classList.toggle("hidden", !show);
+          if (!show) {
+            modalCustomerDesignNotified.checked = false;
+            return;
+          }
+          modalCustomerDesignNotified.checked = !!b.designUpdateNotifiedToCustomer;
+          modalCustomerDesignNotified.disabled = false;
+        }
+
+        function updateArtistWorkspaceUI(b) {
+          if (modalDesignError) {
+            modalDesignError.classList.add("hidden");
+            modalDesignError.textContent = "";
+          }
+          if (modalDesignFile) modalDesignFile.value = "";
+          revokeDesignPreviewUrl();
+          var has = hasDesignSketch(b);
+          if (modalDesignPreview) modalDesignPreview.classList.toggle("hidden", !has);
+          if (modalDesignThumb && has) modalDesignThumb.src = b.designSketchImage;
+          if (modalDesignThumb && !has) modalDesignThumb.removeAttribute("src");
+          if (modalArtistNotes) modalArtistNotes.value = (b && b.artistNotes) || "";
+          syncCustomerDesignNotifyCheckbox(b);
+        }
+
+        var MSG_NEED_SLIP_STATUS =
+          "⚠️ ไม่สามารถยืนยันคิวได้ กรุณาอัปโหลดหลักฐานการโอนเงินมัดจำก่อนเปลี่ยนไปขั้น «รอออกแบบ» «รอนัดคิว» หรือ «นัดคิวสำเร็จ»";
+
+        var MSG_NEED_COT_STATUS =
+          "⚠️ ไม่สามารถปิดงานได้ กรุณาแนบหลักฐานการจ่ายยอดคงเหลือ (COT) ก่อน";
+
+        var MSG_STATE_LOCK_DEPOSIT =
+          "⚠️ รายการนี้มีการบันทึกยอดมัดจำและแนบสลิปแล้ว — ไม่สามารถเปลี่ยนสถานะกลับไป «รอตรวจสอบ» หรือ «รอโอนมัดจำ» ได้";
+
+        var MSG_STATE_LOCK_COT =
+          "⚠️ รายการนี้มีการบันทึกยอด COT และแนบสลิปแล้ว — สถานะถูกล็อคเป็น «เข้ารับบริการแล้ว» เท่านั้น";
+
+        var MSG_RULE2_NEED_DESIGN_FOR_SLOT =
+          "⚠️ ไม่สามารถเปลี่ยนเป็น «รอนัดคิว» ได้จนกว่าจะมีการแนบภาพแบบร่างรอยสักและบันทึกลงในระบบ";
+        var MSG_NEED_APPOINTMENT_FOR_COMPLETED =
+          "⚠️ ไม่สามารถเปลี่ยนสถานะได้ กรุณาคลิกเพื่อเปิดรายละเอียด และบันทึกวัน-เวลานัดหมายให้เรียบร้อยก่อน";
+        var MSG_CANNOT_COMPLETED_WITHOUT_DESIGN =
+          "⚠️ ไม่สามารถเปลี่ยนเป็นนัดคิวสำเร็จได้ กรุณาให้ศิลปินแนบภาพแบบร่างก่อน";
+        var MSG_NO_REVERSE_TO_AWAITING_SLOT =
+          "⚠️ มีการบันทึกวัน-เวลานัดหมายแล้ว — ไม่สามารถเลือกสถานะ «รอนัดคิว» ได้ (หากอยู่ขั้นรอออกแบบ ระบบจะเลื่อนไปรอนัดคิวเมื่อมีการบันทึกแบบร่างตามปกติ)";
+        var cotPreviewObjectUrl = null;
+        var designPreviewObjectUrl = null;
+
+        var persistRevenueTimer = null;
+
+        function parseMoneyFromInput(el) {
+          if (!el || el.value === "" || el.value == null) return null;
+          var n = parseFloat(String(el.value).replace(/,/g, ""));
+          if (isNaN(n) || n < 0) return null;
+          return n;
+        }
+
+        function formatBahtDisplay(n) {
+          var num = Number(n);
+          if (isNaN(num)) num = 0;
+          return num.toLocaleString("th-TH", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          });
+        }
+
+        function computeTotalFromInputs() {
+          var d = parseMoneyFromInput(modalDepositAmount) || 0;
+          var c = parseMoneyFromInput(modalCotAmount) || 0;
+          return d + c;
+        }
+
+        function updateTotalRevenueDisplay() {
+          if (!modalTotalRevenue) return;
+          modalTotalRevenue.textContent = "฿" + formatBahtDisplay(computeTotalFromInputs());
+        }
+
+        function applyRevenueFieldsToBooking(row) {
+          if (!row) return;
+          var dep = parseMoneyFromInput(modalDepositAmount);
+          var cotAmt = parseMoneyFromInput(modalCotAmount);
+          if (dep == null) {
+            delete row.depositAmount;
+          } else {
+            row.depositAmount = dep;
+          }
+          if (cotAmt == null) {
+            delete row.cotAmount;
+          } else {
+            row.cotAmount = cotAmt;
+          }
+          var dNum = dep != null ? dep : 0;
+          var cNum = cotAmt != null ? cotAmt : 0;
+          row.totalRevenue = dNum + cNum;
+        }
+
+        function persistRevenueFromModalInputs() {
+          if (!currentDetailId) return;
+          if (isModalFormLocked()) return;
+          var all = loadBookings();
+          var idx = all.findIndex(function (x) {
+            return x.id === currentDetailId;
+          });
+          if (idx === -1) return;
+          applyRevenueFieldsToBooking(all[idx]);
+          tryAutoAdvanceDepositStep(all[idx]);
+          try {
+            saveBookings(all);
+          } catch (err) {
+            return;
+          }
+          renderBoard();
+          if (currentDetailId) refreshModalFromBookingId(currentDetailId);
+        }
+
+        function schedulePersistRevenue() {
+          clearTimeout(persistRevenueTimer);
+          persistRevenueTimer = setTimeout(function () {
+            persistRevenueFromModalInputs();
+            persistRevenueTimer = null;
+          }, 320);
+        }
+
+        function syncAmountInputsFromBooking(b) {
+          if (modalDepositAmount) {
+            modalDepositAmount.value =
+              b && b.depositAmount != null && !isNaN(Number(b.depositAmount))
+                ? String(b.depositAmount)
+                : "";
+          }
+          if (modalCotAmount) {
+            modalCotAmount.value =
+              b && b.cotAmount != null && !isNaN(Number(b.cotAmount)) ? String(b.cotAmount) : "";
+          }
+          updateTotalRevenueDisplay();
+        }
+
+        function totalRevenueFromBooking(b) {
+          if (!b) return 0;
+          if (b.totalRevenue != null && !isNaN(Number(b.totalRevenue))) return Number(b.totalRevenue);
+          var d = Number(b.depositAmount);
+          var c = Number(b.cotAmount);
+          return (isNaN(d) ? 0 : d) + (isNaN(c) ? 0 : c);
+        }
+
+        function hasDepositAmountRecorded(b) {
+          return b && b.depositAmount != null && !isNaN(Number(b.depositAmount));
+        }
+
+        function showValidationModal(message) {
+          if (validationModalText) validationModalText.textContent = message || MSG_NEED_SLIP_STATUS;
+          if (validationModal) {
+            validationModal.classList.remove("hidden");
+            validationModal.classList.add("flex");
+            validationModal.setAttribute("aria-hidden", "false");
+          }
+        }
+
+        function closeValidationModal() {
+          if (validationModal) {
+            validationModal.classList.add("hidden");
+            validationModal.classList.remove("flex");
+            validationModal.setAttribute("aria-hidden", "true");
+          }
+        }
+
+        function closeReasonModal() {
+          if (reasonModal) {
+            reasonModal.classList.add("hidden");
+            reasonModal.classList.remove("flex");
+            reasonModal.setAttribute("aria-hidden", "true");
+          }
+          reasonModalCallback = null;
+          if (reasonModalInput) reasonModalInput.value = "";
+        }
+
+        function openReasonModal(title, desc, onConfirm) {
+          if (!reasonModal || !reasonModalInput) return;
+          if (reasonModalTitle) reasonModalTitle.textContent = title || "กรุณาระบุเหตุผล";
+          if (reasonModalDesc) reasonModalDesc.textContent = desc || "";
+          reasonModalInput.value = "";
+          reasonModalCallback = typeof onConfirm === "function" ? onConfirm : null;
+          reasonModal.classList.remove("hidden");
+          reasonModal.classList.add("flex");
+          reasonModal.setAttribute("aria-hidden", "false");
+          reasonModalInput.focus();
+        }
+
+        function isoToDatetimeLocalValue(isoOrMs) {
+          var d = new Date(isoOrMs);
+          if (isNaN(d.getTime())) return "";
+          var p = function (n) {
+            return (n < 10 ? "0" : "") + n;
+          };
+          return (
+            d.getFullYear() +
+            "-" +
+            p(d.getMonth() + 1) +
+            "-" +
+            p(d.getDate()) +
+            "T" +
+            p(d.getHours()) +
+            ":" +
+            p(d.getMinutes())
+          );
+        }
+
+        function syncModalDeadlineAndSlaUi(b) {
+          if (!b) return;
+          var locked = isModalFormLocked();
+          var showDelay = b.status === "awaiting-design" && requiresDesignDelayReason(b);
+          if (modalDesignDelayWrap) modalDesignDelayWrap.classList.toggle("hidden", !showDelay);
+          if (modalDesignDelayReason) {
+            modalDesignDelayReason.value = (b.designDelayReason && String(b.designDelayReason)) || "";
+            modalDesignDelayReason.disabled = locked;
+          }
+          if (modalBtnSaveDesignDelay) {
+            modalBtnSaveDesignDelay.classList.toggle("hidden", locked || !showDelay);
+            modalBtnSaveDesignDelay.disabled = locked;
+          }
+          var showSla = isManager() && hasDepositSlip(b) && b.status === "awaiting-design";
+          if (modalDepositSlaWrap) modalDepositSlaWrap.classList.toggle("hidden", !showSla);
+          if (modalDepositSlaDatetime) {
+            modalDepositSlaDatetime.value = isoToDatetimeLocalValue(getDepositSlaAnchorMs(b));
+            modalDepositSlaDatetime.disabled = locked;
+          }
+          if (modalBtnSaveDepositSla) {
+            modalBtnSaveDepositSla.classList.toggle("hidden", locked || !showSla);
+            modalBtnSaveDepositSla.disabled = locked;
+          }
+        }
+
+        function openSlipLightbox(src) {
+          if (!src || !slipLightbox || !slipLightboxImg) return;
+          slipLightboxImg.src = src;
+          slipLightbox.classList.remove("hidden");
+          slipLightbox.classList.add("flex");
+          slipLightbox.setAttribute("aria-hidden", "false");
+        }
+
+        function updateDepositSlipUI(b) {
+          if (modalDepositError) {
+            modalDepositError.classList.add("hidden");
+            modalDepositError.textContent = "";
+          }
+          if (modalDepositFile) modalDepositFile.value = "";
+          var has = b && b.depositSlipImage && String(b.depositSlipImage).length > 0;
+          if (modalDepositPreview) modalDepositPreview.classList.toggle("hidden", !has);
+          if (modalDepositThumb && has) modalDepositThumb.src = b.depositSlipImage;
+          if (modalDepositThumb && !has) modalDepositThumb.removeAttribute("src");
+        }
+
+        function placementLine(b) {
+          var base = b.placementLabel || b.placement || "";
+          if (b.placement === "other" && b.placementOther) {
+            return base + " · " + b.placementOther;
+          }
+          if (b.placementOther && b.placement !== "other") {
+            return base + " · " + b.placementOther;
+          }
+          return base || "—";
+        }
+
+        function artistDisplayName(b) {
+          if (b.artistLabel && String(b.artistLabel).trim()) return String(b.artistLabel).trim();
+          var key = b.artist || "anyone";
+          var found = ARTISTS.find(function (a) {
+            return a.key === key;
+          });
+          return found ? found.badge : key || "ไม่ระบุ";
+        }
+
+        function getUserRecordByUsername(username) {
+          try {
+            var list = JSON.parse(localStorage.getItem(USERS_LIST_KEY) || "[]");
+            if (!Array.isArray(list)) return null;
+            var u = (username || "").toLowerCase();
+            for (var i = 0; i < list.length; i++) {
+              if (String(list[i].username || "").toLowerCase() === u) return list[i];
+            }
+          } catch (e) {}
+          return null;
+        }
+
+        function getAuditEditorLabel() {
+          var u = (sessionStorage.getItem(AUTH_USER_KEY) || "").trim().toLowerCase();
+          var rec = getUserRecordByUsername(u);
+          if (rec && rec.name && String(rec.name).trim()) return String(rec.name).trim();
+          if (u) return u;
+          return getAuthRole() || "user";
+        }
+
+        function touchAuditFields(row) {
+          if (!row) return;
+          row.lastEditedBy = getAuditEditorLabel();
+          row.lastEditedAt = new Date().toISOString();
+        }
+
+        function formatAuditDisplayLine(b) {
+          if (!b || !b.lastEditedAt) return "";
+          var d = new Date(b.lastEditedAt);
+          if (isNaN(d.getTime())) return "";
+          var when = d.toLocaleString("th-TH", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          var who = b.lastEditedBy != null && String(b.lastEditedBy).trim() ? String(b.lastEditedBy).trim() : "—";
+          return "📝 แก้ไขล่าสุดเมื่อ: " + when + " โดย: " + who;
+        }
+
+        function updateAuditDisplay(b) {
+          if (!modalAuditLine) return;
+          var parts = [];
+          var main = formatAuditDisplayLine(b);
+          if (main) parts.push(main);
+          if (b && b.auditTrail && b.auditTrail.length) {
+            var tail = b.auditTrail.slice(-8);
+            for (var i = 0; i < tail.length; i++) {
+              var ev = tail[i];
+              var ts = ev.at ? formatShortDate(ev.at) : "—";
+              var who = ev.by != null && String(ev.by).trim() ? String(ev.by).trim() : "—";
+              parts.push("• " + ts + " · " + who + " — " + (ev.message || ""));
+            }
+          }
+          var txt = parts.join("\n");
+          modalAuditLine.textContent = txt;
+          modalAuditLine.style.whiteSpace = "pre-wrap";
+          modalAuditLine.classList.toggle("hidden", !txt);
+        }
+
+        function buildManagerPlacementSelectOnce() {
+          var sel = modalEditPlacement;
+          if (!sel || sel.getAttribute("data-built") === "1") return;
+          sel.innerHTML = "";
+          var ph = document.createElement("option");
+          ph.value = "";
+          ph.textContent = "— เลือกตำแหน่ง —";
+          sel.appendChild(ph);
+          PLACEMENT_OPTIONS.forEach(function (row) {
+            var opt = document.createElement("option");
+            opt.value = row.value;
+            opt.textContent = row.th;
+            sel.appendChild(opt);
+          });
+          var u = document.createElement("option");
+          u.value = "unsure";
+          u.textContent = "ยังไม่แน่ใจ";
+          sel.appendChild(u);
+          var o = document.createElement("option");
+          o.value = "other";
+          o.textContent = "อื่นๆ (ระบุเอง)";
+          sel.appendChild(o);
+          sel.setAttribute("data-built", "1");
+        }
+
+        function syncModalPlacementOtherVisibility() {
+          if (!modalEditPlacement || !modalPlacementOtherWrap) return;
+          var show = modalEditPlacement.value === "other";
+          modalPlacementOtherWrap.classList.toggle("hidden", !show);
+        }
+
+        function ensureManagerPlacementValue(sel, val, labelFallback) {
+          if (!sel || val == null || val === "") return;
+          var v = String(val);
+          var exists = false;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === v) {
+              exists = true;
+              break;
+            }
+          }
+          if (!exists) {
+            var opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = labelFallback || v;
+            sel.appendChild(opt);
+          }
+          sel.value = v;
+        }
+
+        function fillCustomerFieldsInModal(b) {
+          if (!b) return;
+          if (modalFullName) modalFullName.textContent = b.fullName || "—";
+          if (modalEditFullName) modalEditFullName.value = b.fullName || "";
+          if (modalSize) {
+            modalSize.textContent =
+              (b.widthCm != null ? b.widthCm : "—") + " × " + (b.heightCm != null ? b.heightCm : "—") + " cm";
+          }
+          if (modalInkStyle) {
+            if (b.inkStyleLabel) {
+              modalInkStyle.textContent = b.inkStyleLabel;
+            } else if (b.inkStyle === "color") {
+              modalInkStyle.textContent = "สี";
+            } else if (b.inkStyle === "blackwhite") {
+              modalInkStyle.textContent = "ขาวดำ";
+            } else {
+              modalInkStyle.textContent = "—";
+            }
+          }
+          if (modalEditWidthCm) {
+            modalEditWidthCm.value =
+              b.widthCm != null && b.widthCm !== "" && !isNaN(Number(b.widthCm)) ? String(b.widthCm) : "";
+          }
+          if (modalEditHeightCm) {
+            modalEditHeightCm.value =
+              b.heightCm != null && b.heightCm !== "" && !isNaN(Number(b.heightCm)) ? String(b.heightCm) : "";
+          }
+          if (modalPlacement) modalPlacement.textContent = placementLine(b);
+          if (modalEditPlacement) {
+            var pv = b.placement != null && b.placement !== "" ? String(b.placement) : "";
+            if (pv) {
+              ensureManagerPlacementValue(modalEditPlacement, pv, b.placementLabel || pv);
+            } else {
+              modalEditPlacement.value = "";
+            }
+          }
+          if (modalEditPlacementOther) modalEditPlacementOther.value = b.placementOther || "";
+          syncModalPlacementOtherVisibility();
+          if (modalDetails) modalDetails.textContent = b.details || "—";
+          if (modalEditDetails) modalEditDetails.value = b.details || "";
+        }
+
+        function syncModalCustomerControls() {
+          var mgr = isManager();
+          if (modalSaveCustomerWrap) modalSaveCustomerWrap.classList.toggle("hidden", !mgr);
+          if (modalFullName && modalEditFullName) {
+            modalFullName.classList.toggle("hidden", mgr);
+            modalEditFullName.classList.toggle("hidden", !mgr);
+            modalEditFullName.disabled = !mgr;
+          }
+          if (modalSize && modalEditSizeWrap) {
+            modalSize.classList.toggle("hidden", mgr);
+            modalEditSizeWrap.classList.toggle("hidden", !mgr);
+          }
+          if (modalEditWidthCm) modalEditWidthCm.disabled = !mgr;
+          if (modalEditHeightCm) modalEditHeightCm.disabled = !mgr;
+          if (modalPlacement && modalEditPlacementWrap) {
+            modalPlacement.classList.toggle("hidden", mgr);
+            modalEditPlacementWrap.classList.toggle("hidden", !mgr);
+          }
+          if (modalEditPlacement) modalEditPlacement.disabled = !mgr;
+          if (modalEditPlacementOther) modalEditPlacementOther.disabled = !mgr;
+          if (modalDetails && modalEditDetails) {
+            modalDetails.classList.toggle("hidden", mgr);
+            modalEditDetails.classList.toggle("hidden", !mgr);
+            modalEditDetails.disabled = !mgr;
+          }
+          if (modalBtnSaveCustomer) modalBtnSaveCustomer.disabled = !mgr;
+          syncModalPlacementOtherVisibility();
+        }
+
+        function getManagerPlacementLabelFromSelect() {
+          if (!modalEditPlacement || modalEditPlacement.selectedIndex < 0) return "";
+          var opt = modalEditPlacement.options[modalEditPlacement.selectedIndex];
+          return opt ? String(opt.textContent || "").trim() : "";
+        }
+
+        function filterBookingsByArtist(all) {
+          if (isArtist()) {
+            var ak = getAuthArtistKey();
+            if (!ak) return [];
+            return all.filter(function (b) {
+              var key = b.artist != null && b.artist !== "" ? b.artist : "anyone";
+              return key === ak;
+            });
+          }
+          if (filterArtistKey === "all") return all;
+          return all.filter(function (b) {
+            var key = b.artist != null && b.artist !== "" ? b.artist : "anyone";
+            return key === filterArtistKey;
+          });
+        }
+
+        function buildFilterDropdown() {
+          if (!filterArtistEl) return;
+          if (isArtist()) {
+            filterArtistEl.innerHTML = "";
+            var ak = getAuthArtistKey();
+            var ox = document.createElement("option");
+            ox.value = ak || "all";
+            ox.textContent = "งานของฉัน";
+            filterArtistEl.appendChild(ox);
+            filterArtistEl.disabled = true;
+            filterArtistKey = ak || "all";
+            return;
+          }
+          filterArtistEl.disabled = false;
+          filterArtistEl.innerHTML = "";
+          var optAll = document.createElement("option");
+          optAll.value = "all";
+          optAll.textContent = "ทั้งหมด (แสดงทุกศิลปิน)";
+          filterArtistEl.appendChild(optAll);
+          ARTISTS.forEach(function (a) {
+            var opt = document.createElement("option");
+            opt.value = a.key;
+            opt.textContent = a.badge;
+            filterArtistEl.appendChild(opt);
+          });
+          filterArtistEl.value = filterArtistKey;
+          if (filterArtistEl.value !== filterArtistKey) {
+            filterArtistKey = "all";
+            filterArtistEl.value = "all";
+          }
+        }
+
+        function el(tag, cls, text) {
+          var node = document.createElement(tag);
+          if (cls) node.className = cls;
+          if (text !== undefined && text !== null) node.textContent = text;
+          return node;
+        }
+
+        function openDetailModal(b) {
+          clearTimeout(persistRevenueTimer);
+          persistRevenueTimer = null;
+          if (isArtist() && !isBookingForCurrentArtist(b)) {
+            showValidationModal("คุณไม่สามารถเปิดงานของศิลปินคนอื่นได้");
+            currentDetailId = null;
+            return;
+          }
+          currentDetailId = b.id;
+          modalApptError.classList.add("hidden");
+          modalApptError.textContent = "";
+          hideApptConfirmPanel();
+
+          modalPhone.textContent = b.phone || "—";
+          modalArtist.textContent = artistDisplayName(b);
+          fillCustomerFieldsInModal(b);
+          syncModalStatusSelect(b);
+          modalCreated.textContent = formatShortDate(b.createdAt);
+
+          if (modalApptDisplay) modalApptDisplay.textContent = formatAppointmentSummaryForDetail(b);
+
+          modalApptDate.value = b.appointmentDate || "";
+          modalApptTime.value = b.appointmentTime || "";
+
+          updateDepositSlipUI(b);
+          updateCotSlipUI(b);
+          updateArtistWorkspaceUI(b);
+          if (modalInternalNotes) modalInternalNotes.value = b.internalNotes != null ? String(b.internalNotes) : "";
+          syncAmountInputsFromBooking(b);
+
+          modalImages.innerHTML = "";
+          var hasSk = hasDesignSketch(b);
+          var gridCls = hasSk ? "grid grid-cols-3 gap-3" : "grid grid-cols-2 gap-3";
+          var wrapGrid = el("div", gridCls);
+          var refWrap = el("div", "overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 aspect-square");
+          fillImageBox(refWrap, b.referenceImage, "ไม่มีภาพ Reference");
+          var cap1 = el("p", "mt-1 text-center text-[10px] font-medium text-neutral-500", "Reference");
+          var c1 = el("div", "");
+          c1.appendChild(refWrap);
+          c1.appendChild(cap1);
+          wrapGrid.appendChild(c1);
+          if (hasSk) {
+            var desWrap = el(
+              "div",
+              "overflow-hidden rounded-xl border border-violet-200 bg-violet-50 aspect-square"
+            );
+            fillImageBox(desWrap, b.designSketchImage, "แบบร่าง");
+            var capD = el("p", "mt-1 text-center text-[10px] font-medium text-violet-700", "แบบร่าง");
+            var cD = el("div", "");
+            cD.appendChild(desWrap);
+            cD.appendChild(capD);
+            wrapGrid.appendChild(cD);
+          }
+          var placeWrap = el("div", "overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 aspect-square");
+          fillImageBox(placeWrap, b.placementImage, "ไม่มีภาพตำแหน่ง");
+          var cap2 = el("p", "mt-1 text-center text-[10px] font-medium text-neutral-500", "ตำแหน่งบนร่าง");
+          var c2 = el("div", "");
+          c2.appendChild(placeWrap);
+          c2.appendChild(cap2);
+          wrapGrid.appendChild(c2);
+          modalImages.appendChild(wrapGrid);
+
+          detailModal.classList.remove("hidden");
+          detailModal.classList.add("flex");
+          detailModal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          applyModalEditLocks();
+          syncModalDeadlineAndSlaUi(b);
+        }
+
+        function closeDetailModal() {
+          clearTimeout(persistRevenueTimer);
+          persistRevenueTimer = null;
+          currentDetailId = null;
+          hideApptConfirmPanel();
+          closeSlipLightbox();
+          closeValidationModal();
+          closeReasonModal();
+          revokeCotPreviewUrl();
+          revokeDesignPreviewUrl();
+          if (modalDepositFile) modalDepositFile.value = "";
+          if (modalCotFile) modalCotFile.value = "";
+          if (modalDesignFile) modalDesignFile.value = "";
+          if (modalCotPreview) modalCotPreview.classList.add("hidden");
+          if (modalCotThumb) modalCotThumb.removeAttribute("src");
+          if (modalDesignPreview) modalDesignPreview.classList.add("hidden");
+          if (modalDesignThumb) modalDesignThumb.removeAttribute("src");
+          detailModal.classList.add("hidden");
+          detailModal.classList.remove("flex");
+          detailModal.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+        }
+
+        function refreshModalFromBookingId(id) {
+          var all = loadBookings();
+          var b = all.find(function (x) {
+            return x.id === id;
+          });
+          if (!b) return;
+          syncModalStatusSelect(b);
+          if (modalApptDisplay) modalApptDisplay.textContent = formatAppointmentSummaryForDetail(b);
+          modalApptDate.value = b.appointmentDate || "";
+          modalApptTime.value = b.appointmentTime || "";
+          fillCustomerFieldsInModal(b);
+          updateDepositSlipUI(b);
+          updateCotSlipUI(b);
+          updateArtistWorkspaceUI(b);
+          if (modalInternalNotes) modalInternalNotes.value = b.internalNotes != null ? String(b.internalNotes) : "";
+          syncAmountInputsFromBooking(b);
+          applyModalEditLocks();
+          syncModalDeadlineAndSlaUi(b);
+        }
+
+        function renderBoard() {
+          var allStored = loadBookings();
+          var bookingsAll = allStored.filter(function (b) {
+            return b && b.status !== "cancelled" && b.status !== "archived";
+          });
+          var bookings = filterBookingsByArtist(bookingsAll);
+          kanbanEl.innerHTML = "";
+
+          boardEmptyEl.classList.toggle("hidden", bookingsAll.length > 0);
+          filterEmptyEl.classList.toggle(
+            "hidden",
+            !(bookingsAll.length > 0 && bookings.length === 0)
+          );
+
+          STATUSES.forEach(function (col) {
+            var colBookings = bookings.filter(function (b) {
+              return b.status === col.key;
+            });
+
+            var column = el(
+              "section",
+              "flex min-h-[420px] flex-col rounded-2xl border border-neutral-200 bg-white shadow-sm"
+            );
+            var head = el(
+              "div",
+              "flex items-center justify-between border-b border-neutral-100 px-4 py-3"
+            );
+            var title = el("h2", "text-sm font-semibold text-neutral-900", col.label);
+            var count = el(
+              "span",
+              "rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600",
+              String(colBookings.length)
+            );
+            head.appendChild(title);
+            head.appendChild(count);
+
+            var body = el("div", "flex flex-1 flex-col gap-2 overflow-y-auto p-2");
+
+            if (colBookings.length === 0) {
+              var empty = el(
+                "p",
+                "rounded-xl border border-dashed border-neutral-200 bg-neutral-50/80 px-3 py-8 text-center text-xs text-neutral-400",
+                "ไม่มีงานในคอลัมน์นี้"
+              );
+              body.appendChild(empty);
+            } else {
+              colBookings.forEach(function (b) {
+                body.appendChild(renderCard(b));
+              });
+            }
+
+            column.appendChild(head);
+            column.appendChild(body);
+            kanbanEl.appendChild(column);
+          });
+        }
+
+        function fillImageBox(box, src, emptyLabel) {
+          box.innerHTML = "";
+          if (!src) {
+            box.appendChild(
+              el(
+                "div",
+                "flex h-full min-h-[80px] items-center justify-center px-1 text-center text-[10px] leading-tight text-neutral-400",
+                emptyLabel
+              )
+            );
+            return;
+          }
+          var img = document.createElement("img");
+          img.className = "h-full w-full object-cover";
+          img.alt = "";
+          img.src = src;
+          img.onerror = function () {
+            fillImageBox(box, "", "โหลดภาพไม่ได้");
+          };
+          box.appendChild(img);
+        }
+
+        /** Thumbnail บนการ์ด Kanban (ประมาณ 56px) */
+        function fillCardThumbBox(box, src, emptyLabel) {
+          box.innerHTML = "";
+          if (!src) {
+            box.appendChild(
+              el(
+                "div",
+                "flex h-full w-full min-h-[44px] items-center justify-center px-0.5 text-center text-[8px] leading-tight text-neutral-400",
+                emptyLabel
+              )
+            );
+            return;
+          }
+          var img = document.createElement("img");
+          img.className = "h-full w-full object-cover";
+          img.alt = "";
+          img.src = src;
+          img.onerror = function () {
+            fillCardThumbBox(box, "", "×");
+          };
+          box.appendChild(img);
+        }
+
+        function renderCard(b) {
+          var card = el(
+            "article",
+            "relative cursor-pointer rounded-lg border border-neutral-200 bg-neutral-50/50 py-2 pl-2 " +
+              (canDeleteBookingRole() ? "pr-14" : "pr-7") +
+              " shadow-sm transition hover:border-neutral-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1"
+          );
+          card.setAttribute("role", "button");
+          card.setAttribute("tabindex", "0");
+          card.setAttribute("aria-label", "เปิดรายละเอียด " + (b.fullName || "คำขอ"));
+
+          var sizeLine =
+            "ขนาด " +
+            (b.widthCm != null ? b.widthCm : "—") +
+            " × " +
+            (b.heightCm != null ? b.heightCm : "—") +
+            " cm";
+
+          var head = el("div", "pointer-events-none space-y-0.5 border-b border-neutral-100 pb-1.5");
+          head.appendChild(
+            el("p", "truncate pr-1 text-sm font-semibold leading-tight text-neutral-900", b.fullName || "—")
+          );
+          head.appendChild(el("p", "truncate text-[10px] text-neutral-500", b.phone || "—"));
+          var lineSizeOnly = el(
+            "p",
+            "card-collapsed-only text-[11px] leading-snug text-neutral-700",
+            sizeLine
+          );
+          head.appendChild(lineSizeOnly);
+          var linePlacementSize = el(
+            "p",
+            "card-expanded-only hidden text-[11px] leading-snug text-neutral-700",
+            placementLine(b) + " · " + sizeLine
+          );
+          head.appendChild(linePlacementSize);
+          head.appendChild(
+            el(
+              "p",
+              "text-[11px] font-semibold leading-snug text-neutral-900",
+              "ศิลปิน · " + artistDisplayName(b)
+            )
+          );
+          card.appendChild(head);
+
+          var slaCard = getDesignSlaBadgeForCard(b);
+          if (slaCard) {
+            card.appendChild(
+              el(
+                "p",
+                "pointer-events-none mb-1 rounded-md border px-2 py-0.5 text-[9px] font-semibold leading-snug " +
+                  slaCard.cls,
+                slaCard.text
+              )
+            );
+          }
+
+          if (
+            !hasDesignSketch(b) &&
+            (b.status === "awaiting-slot" ||
+              b.status === "completed" ||
+              (b.status === "awaiting-design" && hasAppointmentRecorded(b)))
+          ) {
+            card.appendChild(
+              el(
+                "p",
+                "pointer-events-none mb-1 rounded-md border border-orange-400 bg-orange-50 px-2 py-0.5 text-[9px] font-semibold leading-snug text-orange-950",
+                "⚠️ ยังไม่ส่งแบบ (Missing Design)"
+              )
+            );
+          }
+
+          var showDesignThumb =
+            (b.status === "awaiting-slot" || b.status === "completed") && hasDesignSketch(b);
+          var thumbStrip = el(
+            "div",
+            "card-thumb-strip card-expanded-only mt-1.5 hidden flex flex-row flex-wrap items-center gap-1.5 pointer-events-none"
+          );
+          var thumbWrapClass =
+            "h-14 w-14 max-h-[56px] max-w-[56px] flex-shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100";
+
+          var refBox = el("div", thumbWrapClass);
+          fillCardThumbBox(refBox, b.referenceImage, "เรฟ");
+          thumbStrip.appendChild(refBox);
+
+          var placeBox = el("div", thumbWrapClass);
+          fillCardThumbBox(placeBox, b.placementImage, "ตำแหน่ง");
+          thumbStrip.appendChild(placeBox);
+
+          if (showDesignThumb) {
+            var designBox = el("div", thumbWrapClass + " border-violet-300 bg-violet-50 ring-1 ring-violet-200/80");
+            fillCardThumbBox(designBox, b.designSketchImage, "แบบ");
+            thumbStrip.appendChild(designBox);
+          }
+
+          if (b.depositSlipImage && String(b.depositSlipImage).length > 0) {
+            var slipBox = el("div", thumbWrapClass + " border-emerald-200 bg-emerald-50/80");
+            fillCardThumbBox(slipBox, b.depositSlipImage, "สลิป");
+            thumbStrip.appendChild(slipBox);
+          }
+
+          card.appendChild(thumbStrip);
+
+          var det = el(
+            "p",
+            "card-expanded-only card-desc mt-1.5 hidden line-clamp-2 break-words border-t border-neutral-100 pt-1.5 text-[11px] leading-snug text-neutral-500 pointer-events-none",
+            ""
+          );
+          det.textContent = b.details || "—";
+          card.appendChild(det);
+
+          var createdEl = el(
+            "p",
+            "card-expanded-only card-created-at mt-1 hidden text-[9px] text-neutral-400 pointer-events-none",
+            "ส่งเมื่อ " + formatShortDate(b.createdAt)
+          );
+          card.appendChild(createdEl);
+
+          var expandBody = el(
+            "div",
+            "card-expand-body card-expanded-only pointer-events-none mt-1.5 hidden space-y-1.5 border-t border-dashed border-neutral-200 pt-1.5"
+          );
+          var expandGrid = el("div", "grid grid-cols-2 gap-1.5");
+          function bigCell(src, emptyL) {
+            var bx = el(
+              "div",
+              "aspect-square max-h-24 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100"
+            );
+            fillImageBox(bx, src, emptyL);
+            return bx;
+          }
+          expandGrid.appendChild(bigCell(b.referenceImage, "เรฟ"));
+          expandGrid.appendChild(bigCell(b.placementImage, "ตำแหน่ง"));
+          if (showDesignThumb) {
+            var dg = el(
+              "div",
+              "col-span-2 aspect-video max-h-28 overflow-hidden rounded-md border border-violet-200 bg-violet-50"
+            );
+            fillImageBox(dg, b.designSketchImage, "แบบร่าง");
+            expandGrid.appendChild(dg);
+          }
+          if (b.depositSlipImage && String(b.depositSlipImage).length > 0) {
+            var slipBig = el(
+              "div",
+              "col-span-2 aspect-video max-h-24 overflow-hidden rounded-md border border-emerald-200 bg-emerald-50"
+            );
+            fillImageBox(slipBig, b.depositSlipImage, "สลิปมัดจำ");
+            expandGrid.appendChild(slipBig);
+          }
+          expandBody.appendChild(expandGrid);
+          var notesPreview = ((b.artistNotes || "") + "").trim();
+          if (notesPreview) {
+            expandBody.appendChild(
+              el(
+                "p",
+                "rounded-md bg-neutral-100 px-2 py-1 text-[10px] leading-snug text-neutral-600",
+                notesPreview
+              )
+            );
+          }
+          expandBody.appendChild(
+            el(
+              "p",
+              "text-[9px] leading-snug text-neutral-400",
+              "รูปความละเอียดเต็ม ประวัติแก้ไข และฟิลด์ทั้งหมด — แตะการ์ดเพื่อเปิด Modal"
+            )
+          );
+
+          card.appendChild(expandBody);
+
+          if (canDeleteBookingRole()) {
+            var delBtn = document.createElement("button");
+            delBtn.type = "button";
+            delBtn.className =
+              "booking-delete-btn pointer-events-auto absolute right-8 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-md border border-transparent text-neutral-400 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500";
+            delBtn.setAttribute("aria-label", "ลบรายการจอง");
+            delBtn.innerHTML =
+              '<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>';
+            delBtn.addEventListener("click", function (ev) {
+              ev.stopPropagation();
+              ev.preventDefault();
+              if (
+                !window.confirm(
+                  "คุณต้องการลบข้อมูลการจองนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้"
+                )
+              ) {
+                return;
+              }
+              deleteBooking(b.id);
+            });
+            card.appendChild(delBtn);
+          }
+
+          var chevBtn = el(
+            "button",
+            "card-expand-toggle pointer-events-auto absolute right-1 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-md border border-neutral-200/80 bg-white/95 text-[11px] leading-none text-neutral-500 shadow-sm backdrop-blur-sm hover:border-neutral-300 hover:text-neutral-900",
+            "▼"
+          );
+          chevBtn.type = "button";
+          chevBtn.setAttribute("aria-expanded", "false");
+          chevBtn.setAttribute("aria-label", "ขยายการ์ด");
+
+          function setCardExpanded(expanded) {
+            chevBtn.textContent = expanded ? "▲" : "▼";
+            chevBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+            chevBtn.setAttribute("aria-label", expanded ? "ย่อการ์ด" : "ขยายการ์ด");
+            thumbStrip.classList.toggle("hidden", !expanded);
+            det.classList.toggle("hidden", !expanded);
+            createdEl.classList.toggle("hidden", !expanded);
+            expandBody.classList.toggle("hidden", !expanded);
+            lineSizeOnly.classList.toggle("hidden", expanded);
+            linePlacementSize.classList.toggle("hidden", !expanded);
+          }
+
+          chevBtn.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+            var expanded = expandBody.classList.contains("hidden");
+            setCardExpanded(expanded);
+          });
+          card.appendChild(chevBtn);
+
+          var footerMeta = el(
+            "div",
+            "mt-1.5 flex flex-col gap-1 border-t border-neutral-100 pt-1.5 pointer-events-none"
+          );
+          var moneyRow = el(
+            "div",
+            "card-money-row flex min-w-0 flex-wrap items-center gap-1"
+          );
+          var hasSlip = !!(b.depositSlipImage && String(b.depositSlipImage).length > 0);
+          var hasAmt = hasDepositAmountRecorded(b);
+          if (hasSlip && hasAmt) {
+            moneyRow.appendChild(
+              el(
+                "span",
+                "inline-flex max-w-full shrink items-center gap-0.5 truncate rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-900",
+                "💰 มัดจำแล้ว ฿" + formatBahtDisplay(b.depositAmount)
+              )
+            );
+          } else if (hasSlip) {
+            moneyRow.appendChild(
+              el(
+                "span",
+                "inline-flex shrink-0 items-center gap-0.5 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-900",
+                "💰 มัดจำแล้ว"
+              )
+            );
+          } else if (hasAmt) {
+            moneyRow.appendChild(
+              el(
+                "span",
+                "inline-flex max-w-full shrink truncate rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-950",
+                "💰 มัดจำ ฿" + formatBahtDisplay(b.depositAmount)
+              )
+            );
+          }
+          if (b.status === "service-received" && hasCotSlip(b)) {
+            var tot = totalRevenueFromBooking(b);
+            moneyRow.appendChild(
+              el(
+                "span",
+                "inline-flex max-w-full shrink items-center gap-0.5 truncate rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[9px] font-bold text-violet-950",
+                "🏁 รวม ฿" + formatBahtDisplay(tot)
+              )
+            );
+          }
+          if (moneyRow.childNodes.length > 0) {
+            footerMeta.appendChild(moneyRow);
+          }
+
+          var chipsRow = el("div", "flex min-w-0 flex-wrap items-center gap-1");
+          if (b.status === "awaiting-slot" && b.designUpdateNotifiedToCustomer) {
+            chipsRow.appendChild(
+              el(
+                "span",
+                "inline-flex shrink-0 items-center gap-0.5 rounded border border-sky-300 bg-sky-50 px-1.5 py-0.5 text-[9px] font-semibold text-sky-950",
+                "✉️ ส่งแบบแล้ว"
+              )
+            );
+          }
+          var apptText = formatAppointmentBadge(b);
+          if (apptText) {
+            chipsRow.appendChild(
+              el(
+                "span",
+                "min-w-0 max-w-full flex-1 truncate rounded bg-neutral-900 px-1.5 py-0.5 text-[9px] font-semibold text-white",
+                apptText
+              )
+            );
+          }
+          if (chipsRow.childNodes.length > 0) {
+            footerMeta.appendChild(chipsRow);
+          }
+          if (footerMeta.childNodes.length > 0) {
+            card.appendChild(footerMeta);
+          }
+
+          var sel = document.createElement("select");
+          sel.className =
+            "status-select mt-1.5 w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-[11px] font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900";
+          sel.setAttribute("data-booking-id", b.id);
+          STATUSES.forEach(function (s) {
+            if (!includeStatusInDropdown(b, s.key)) return;
+            var opt = document.createElement("option");
+            opt.value = s.key;
+            opt.textContent = s.label;
+            if (s.key === b.status) opt.selected = true;
+            sel.appendChild(opt);
+          });
+          if (shouldDisableStatusSelect(b)) {
+            sel.disabled = true;
+            if (b.status === "completed") {
+              sel.title = "นัดคิวสำเร็จแล้ว — เปลี่ยนสถานะได้เมื่อบันทึก COT ครบเท่านั้น (หรือสิทธิ์ Manager)";
+            } else if (b.status === "awaiting-slot") {
+              sel.title = "รอนัดคิว — ล็อคจนกว่าจะบันทึกวัน-เวลานัดหมาย (หรือสิทธิ์ Manager)";
+            } else {
+              sel.title = "แอดมินไม่สามารถเปลี่ยนสถานะงานที่เข้ารับบริการแล้วได้";
+            }
+          }
+
+          sel.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+          sel.addEventListener("mousedown", function (e) {
+            e.stopPropagation();
+          });
+          sel.addEventListener("change", function (e) {
+            e.stopPropagation();
+            var id = sel.getAttribute("data-booking-id");
+            var next = sel.value;
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === id;
+            });
+            if (idx === -1) return;
+            var row = all[idx];
+            var previousStatus = row.status;
+            if (next === "completed" && !hasDesignSketch(row)) {
+              sel.value = row.status === "awaiting-design" ? "awaiting-design" : previousStatus;
+              showValidationModal(MSG_CANNOT_COMPLETED_WITHOUT_DESIGN);
+              return;
+            }
+            if (next === "completed" && !hasAppointmentRecorded(row)) {
+              sel.value = previousStatus;
+              showValidationModal(MSG_NEED_APPOINTMENT_FOR_COMPLETED);
+              return;
+            }
+            if (cannotPickAwaitingSlotIfAppointmentSaved(row, next)) {
+              sel.value = previousStatus;
+              showValidationModal(MSG_NO_REVERSE_TO_AWAITING_SLOT);
+              return;
+            }
+            if (next === "awaiting-slot" && row.status === "awaiting-design") {
+              var advSlot = assertCanAdvanceToAwaitingSlot(row, "");
+              if (!advSlot.ok) {
+                sel.value = previousStatus;
+                showValidationModal(advSlot.msg);
+                return;
+              }
+            }
+            if (!isManager()) {
+              if (!includeStatusInDropdown(row, next)) {
+                sel.value = previousStatus;
+                var msgCard = MSG_STATE_LOCK_DEPOSIT;
+                if (isCotBundleComplete(row)) msgCard = MSG_STATE_LOCK_COT;
+                else if (
+                  next === "awaiting-slot" &&
+                  !hasDesignSketch(row) &&
+                  !(isManager() && row.status === "awaiting-design")
+                ) {
+                  msgCard = MSG_RULE2_NEED_DESIGN_FOR_SLOT;
+                } else if (row.status === "awaiting-slot" && !hasAppointmentRecorded(row)) {
+                  msgCard =
+                    "ไม่สามารถเปลี่ยนสถานะขณะอยู่ใน «รอนัดคิว» ได้จนกว่าจะบันทึกวัน-เวลานัดหมายแล้ว";
+                } else if (row.status === "completed") {
+                  msgCard = "สถานะ «นัดคิวสำเร็จ» เปลี่ยนได้เฉพาะเมื่อบันทึก COT ครบเท่านั้น";
+                }
+                showValidationModal(msgCard);
+                return;
+              }
+              if (next === "service-received" && !hasCotSlip(row)) {
+                sel.value = previousStatus;
+                showValidationModal(MSG_NEED_COT_STATUS);
+                return;
+              }
+              /** ต้องมีสลิปมัดจำก่อนจึงจะเลื่อนสถานะไปขั้นออกแบบ / รอนัดคิว / นัดสำเร็จ */
+              var statusesRequiringDepositSlip = ["awaiting-design", "awaiting-slot", "completed"];
+              if (statusesRequiringDepositSlip.indexOf(next) !== -1 && !hasDepositSlip(row)) {
+                sel.value = previousStatus;
+                showValidationModal(MSG_NEED_SLIP_STATUS);
+                return;
+              }
+            }
+            row.status = next;
+            saveBookings(all);
+            renderBoard();
+          });
+
+          card.appendChild(sel);
+
+          function cardActivate(e) {
+            if (e) e.preventDefault();
+            openDetailModal(b);
+          }
+
+          card.addEventListener("click", function (e) {
+            if (e.target.closest && e.target.closest(".status-select")) return;
+            if (e.target.closest && e.target.closest(".card-expand-toggle")) return;
+            if (e.target.closest && e.target.closest(".booking-delete-btn")) return;
+            openDetailModal(b);
+          });
+          card.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+              if (e.target === sel) return;
+              if (e.target.closest && e.target.closest(".card-expand-toggle")) return;
+              if (e.target.closest && e.target.closest(".booking-delete-btn")) return;
+              cardActivate(e);
+            }
+          });
+
+          return card;
+        }
+
+        if (modalStatusSelect) {
+          modalStatusSelect.addEventListener("change", function () {
+            if (!currentDetailId) return;
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (idx === -1) return;
+            var row = all[idx];
+            var previousStatus = row.status;
+            var next = modalStatusSelect.value;
+            if (next === previousStatus) return;
+            if (isModalFormLocked()) {
+              syncModalStatusSelect(row);
+              notifyModalFormLocked();
+              return;
+            }
+            if (next === "completed" && !hasDesignSketch(row)) {
+              syncModalStatusSelect(row);
+              showValidationModal(MSG_CANNOT_COMPLETED_WITHOUT_DESIGN);
+              return;
+            }
+            if (next === "completed" && !hasAppointmentRecorded(row)) {
+              syncModalStatusSelect(row);
+              showValidationModal(MSG_NEED_APPOINTMENT_FOR_COMPLETED);
+              return;
+            }
+            if (cannotPickAwaitingSlotIfAppointmentSaved(row, next)) {
+              syncModalStatusSelect(row);
+              showValidationModal(MSG_NO_REVERSE_TO_AWAITING_SLOT);
+              return;
+            }
+            if (next === "awaiting-slot" && row.status === "awaiting-design") {
+              var advSlotM = assertCanAdvanceToAwaitingSlot(row, "");
+              if (!advSlotM.ok) {
+                syncModalStatusSelect(row);
+                showValidationModal(advSlotM.msg);
+                return;
+              }
+            }
+            if (!isManager()) {
+              if (!includeStatusInDropdown(row, next)) {
+                syncModalStatusSelect(row);
+                var msgCard = MSG_STATE_LOCK_DEPOSIT;
+                if (isCotBundleComplete(row)) msgCard = MSG_STATE_LOCK_COT;
+                else if (
+                  next === "awaiting-slot" &&
+                  !hasDesignSketch(row) &&
+                  !(isManager() && row.status === "awaiting-design")
+                ) {
+                  msgCard = MSG_RULE2_NEED_DESIGN_FOR_SLOT;
+                } else if (row.status === "awaiting-slot" && !hasAppointmentRecorded(row)) {
+                  msgCard =
+                    "ไม่สามารถเปลี่ยนสถานะขณะอยู่ใน «รอนัดคิว» ได้จนกว่าจะบันทึกวัน-เวลานัดหมายแล้ว";
+                } else if (row.status === "completed") {
+                  msgCard = "สถานะ «นัดคิวสำเร็จ» เปลี่ยนได้เฉพาะเมื่อบันทึก COT ครบเท่านั้น";
+                }
+                showValidationModal(msgCard);
+                return;
+              }
+              if (next === "service-received" && !hasCotSlip(row)) {
+                syncModalStatusSelect(row);
+                showValidationModal(MSG_NEED_COT_STATUS);
+                return;
+              }
+              var statusesRequiringDepositSlip = ["awaiting-design", "awaiting-slot", "completed"];
+              if (statusesRequiringDepositSlip.indexOf(next) !== -1 && !hasDepositSlip(row)) {
+                syncModalStatusSelect(row);
+                showValidationModal(MSG_NEED_SLIP_STATUS);
+                return;
+              }
+            }
+            row.status = next;
+            try {
+              saveBookings(all);
+            } catch (err) {
+              row.status = previousStatus;
+              syncModalStatusSelect(row);
+              showValidationModal("บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลเต็มหรือเบราว์เซอร์จำกัด");
+              return;
+            }
+            renderBoard();
+            refreshModalFromBookingId(currentDetailId);
+          });
+        }
+
+        modalBtnClose.addEventListener("click", closeDetailModal);
+        detailBackdrop.addEventListener("click", closeDetailModal);
+
+        if (modalDepositFile) {
+          modalDepositFile.addEventListener("change", function () {
+            if (!currentDetailId) return;
+            if (isModalFormLocked()) {
+              modalDepositFile.value = "";
+              notifyModalFormLocked();
+              return;
+            }
+            var file = modalDepositFile.files && modalDepositFile.files[0];
+            if (!file) return;
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+              if (modalDepositError) {
+                modalDepositError.textContent = "กรุณาเลือกไฟล์รูปภาพเท่านั้น";
+                modalDepositError.classList.remove("hidden");
+              }
+              modalDepositFile.value = "";
+              return;
+            }
+            readFileAsDataURL(file)
+              .then(function (dataUrl) {
+                var all = loadBookings();
+                var idx = all.findIndex(function (x) {
+                  return x.id === currentDetailId;
+                });
+                if (idx === -1) return;
+                all[idx].depositSlipImage = dataUrl;
+                if (!all[idx].depositSlipUploadedAt) {
+                  all[idx].depositSlipUploadedAt = new Date().toISOString();
+                }
+                applyRevenueFieldsToBooking(all[idx]);
+                tryAutoAdvanceDepositStep(all[idx]);
+                try {
+                  saveBookings(all);
+                } catch (err) {
+                  if (modalDepositError) {
+                    modalDepositError.textContent =
+                      "บันทึกไม่สำเร็จ — ไฟล์ใหญ่เกินที่เบราว์เซอร์รองรับ ลองใช้รูปเล็กลง";
+                    modalDepositError.classList.remove("hidden");
+                  }
+                  return;
+                }
+                if (modalDepositError) modalDepositError.classList.add("hidden");
+                updateDepositSlipUI(all[idx]);
+                renderBoard();
+                if (currentDetailId) refreshModalFromBookingId(currentDetailId);
+              })
+              .catch(function () {
+                if (modalDepositError) {
+                  modalDepositError.textContent = "อ่านไฟล์ไม่สำเร็จ";
+                  modalDepositError.classList.remove("hidden");
+                }
+              });
+          });
+        }
+
+        if (modalDepositRemove) {
+          modalDepositRemove.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!currentDetailId) return;
+            if (isModalFormLocked()) {
+              notifyModalFormLocked();
+              return;
+            }
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (idx === -1) return;
+            delete all[idx].depositSlipImage;
+            applyRevenueFieldsToBooking(all[idx]);
+            try {
+              saveBookings(all);
+            } catch (err) {
+              if (modalDepositError) {
+                modalDepositError.textContent = "ลบข้อมูลไม่สำเร็จ";
+                modalDepositError.classList.remove("hidden");
+              }
+              return;
+            }
+            updateDepositSlipUI(all[idx]);
+            renderBoard();
+          });
+        }
+
+        if (modalDepositThumbBtn) {
+          modalDepositThumbBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var src = modalDepositThumb && modalDepositThumb.getAttribute("src");
+            if (src) openSlipLightbox(src);
+          });
+        }
+
+        if (modalDesignFile) {
+          modalDesignFile.addEventListener("change", function () {
+            if (!currentDetailId) return;
+            if (isModalFormLocked()) {
+              modalDesignFile.value = "";
+              notifyModalFormLocked();
+              return;
+            }
+            var file = modalDesignFile.files && modalDesignFile.files[0];
+            if (!file) return;
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+              if (modalDesignError) {
+                modalDesignError.textContent = "กรุณาเลือกไฟล์รูปภาพเท่านั้น";
+                modalDesignError.classList.remove("hidden");
+              }
+              modalDesignFile.value = "";
+              return;
+            }
+            if (modalDesignError) modalDesignError.classList.add("hidden");
+            revokeDesignPreviewUrl();
+            designPreviewObjectUrl = URL.createObjectURL(file);
+            if (modalDesignThumb) modalDesignThumb.src = designPreviewObjectUrl;
+            if (modalDesignPreview) modalDesignPreview.classList.remove("hidden");
+          });
+        }
+
+        if (modalDesignThumbBtn) {
+          modalDesignThumbBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var src = modalDesignThumb && modalDesignThumb.getAttribute("src");
+            if (src) openSlipLightbox(src);
+          });
+        }
+
+        if (modalBtnSaveDesign) {
+          modalBtnSaveDesign.addEventListener("click", function () {
+            if (!currentDetailId) return;
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (idx === -1) return;
+            var row = all[idx];
+            if (isModalFormLocked()) {
+              if (!hasDesignSketch(row)) {
+                notifyModalFormLocked();
+                return;
+              }
+              var fileLocked = modalDesignFile.files && modalDesignFile.files[0];
+              if (fileLocked) {
+                notifyModalFormLocked();
+                return;
+              }
+              if (modalArtistNotes) row.artistNotes = (modalArtistNotes.value || "").trim();
+              if (modalCustomerDesignNotified) {
+                row.designUpdateNotifiedToCustomer = !!modalCustomerDesignNotified.checked;
+              }
+              touchAuditFields(row);
+              try {
+                saveBookings(all);
+              } catch (errL) {
+                if (modalDesignError) {
+                  modalDesignError.textContent = "บันทึกไม่สำเร็จ";
+                  modalDesignError.classList.remove("hidden");
+                }
+                return;
+              }
+              if (modalDesignError) modalDesignError.classList.add("hidden");
+              refreshModalFromBookingId(currentDetailId);
+              renderBoard();
+              return;
+            }
+            if (!isManager() && row.status !== "awaiting-design" && row.status !== "awaiting-slot") {
+              showValidationModal("บันทึกแบบร่างได้เมื่องานอยู่ในขั้น «รอออกแบบ» หรือ «รอนัดคิว» เท่านั้น");
+              return;
+            }
+            var file = modalDesignFile.files && modalDesignFile.files[0];
+            if (modalArtistNotes) row.artistNotes = (modalArtistNotes.value || "").trim();
+            if (hasDesignSketch(row) && modalCustomerDesignNotified) {
+              row.designUpdateNotifiedToCustomer = !!modalCustomerDesignNotified.checked;
+            }
+            if (!file) {
+              if (!hasDesignSketch(row)) {
+                if (modalDesignError) {
+                  modalDesignError.textContent = "กรุณาเลือกรูปแบบร่างรอยสักก่อนกดบันทึก";
+                  modalDesignError.classList.remove("hidden");
+                }
+                return;
+              }
+              touchAuditFields(row);
+              try {
+                saveBookings(all);
+              } catch (err) {
+                if (modalDesignError) {
+                  modalDesignError.textContent = "บันทึกไม่สำเร็จ";
+                  modalDesignError.classList.remove("hidden");
+                }
+                return;
+              }
+              if (modalDesignError) modalDesignError.classList.add("hidden");
+              refreshModalFromBookingId(currentDetailId);
+              renderBoard();
+              return;
+            }
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+              if (modalDesignError) {
+                modalDesignError.textContent = "กรุณาเลือกไฟล์รูปภาพเท่านั้น";
+                modalDesignError.classList.remove("hidden");
+              }
+              return;
+            }
+            if (modalDesignError) modalDesignError.classList.add("hidden");
+            readFileAsDataURL(file)
+              .then(function (dataUrl) {
+                var all2 = loadBookings();
+                var ix = all2.findIndex(function (x) {
+                  return x.id === currentDetailId;
+                });
+                if (ix === -1) return;
+                var r = all2[ix];
+                var delayTxt = modalDesignDelayReason ? modalDesignDelayReason.value.trim() : "";
+                var advSave = assertCanAdvanceToAwaitingSlot(r, delayTxt);
+                if (!advSave.ok) {
+                  if (modalDesignError) {
+                    modalDesignError.textContent = advSave.msg;
+                    modalDesignError.classList.remove("hidden");
+                  }
+                  return;
+                }
+                r.designSketchImage = dataUrl;
+                if (modalArtistNotes) r.artistNotes = (modalArtistNotes.value || "").trim();
+                if (modalCustomerDesignNotified) {
+                  r.designUpdateNotifiedToCustomer = !!modalCustomerDesignNotified.checked;
+                }
+                if (delayTxt) r.designDelayReason = delayTxt;
+                applyStatusAfterDesignSave(r);
+                touchAuditFields(r);
+                try {
+                  saveBookings(all2);
+                } catch (err2) {
+                  if (modalDesignError) {
+                    modalDesignError.textContent =
+                      "บันทึกไม่สำเร็จ — ไฟล์ใหญ่เกินที่เบราว์เซอร์รองรับ ลองใช้รูปเล็กลง";
+                    modalDesignError.classList.remove("hidden");
+                  }
+                  return;
+                }
+                refreshModalFromBookingId(currentDetailId);
+                renderBoard();
+              })
+              .catch(function () {
+                if (modalDesignError) {
+                  modalDesignError.textContent = "อ่านไฟล์ไม่สำเร็จ";
+                  modalDesignError.classList.remove("hidden");
+                }
+              });
+          });
+        }
+
+        if (modalCotFile) {
+          modalCotFile.addEventListener("change", function () {
+            if (!currentDetailId) return;
+            if (isModalFormLocked()) {
+              modalCotFile.value = "";
+              notifyModalFormLocked();
+              return;
+            }
+            var file = modalCotFile.files && modalCotFile.files[0];
+            if (!file) return;
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+              if (modalCotError) {
+                modalCotError.textContent = "กรุณาเลือกไฟล์รูปภาพเท่านั้น";
+                modalCotError.classList.remove("hidden");
+              }
+              modalCotFile.value = "";
+              return;
+            }
+            if (modalCotError) modalCotError.classList.add("hidden");
+            revokeCotPreviewUrl();
+            cotPreviewObjectUrl = URL.createObjectURL(file);
+            if (modalCotThumb) modalCotThumb.src = cotPreviewObjectUrl;
+            if (modalCotPreview) modalCotPreview.classList.remove("hidden");
+          });
+        }
+
+        if (modalBtnSaveCot) {
+          modalBtnSaveCot.addEventListener("click", function () {
+            if (!currentDetailId) return;
+            if (isModalFormLocked()) {
+              notifyModalFormLocked();
+              return;
+            }
+            var file = modalCotFile.files && modalCotFile.files[0];
+            if (!file) {
+              if (modalCotError) {
+                modalCotError.textContent = "กรุณาเลือกรูปสลิป COT ก่อนกดบันทึก";
+                modalCotError.classList.remove("hidden");
+              }
+              var cotSecScroll = document.getElementById("modal-cot-section");
+              if (cotSecScroll && cotSecScroll.scrollIntoView) {
+                cotSecScroll.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              }
+              return;
+            }
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+              if (modalCotError) {
+                modalCotError.textContent = "กรุณาเลือกไฟล์รูปภาพเท่านั้น";
+                modalCotError.classList.remove("hidden");
+              }
+              return;
+            }
+            readFileAsDataURL(file)
+              .then(function (dataUrl) {
+                var all = loadBookings();
+                var idx = all.findIndex(function (x) {
+                  return x.id === currentDetailId;
+                });
+                if (idx === -1) return;
+                all[idx].cotSlipImage = dataUrl;
+                all[idx].status = "service-received";
+                applyRevenueFieldsToBooking(all[idx]);
+                touchAuditFields(all[idx]);
+                try {
+                  saveBookings(all);
+                } catch (err) {
+                  if (modalCotError) {
+                    modalCotError.textContent =
+                      "บันทึกไม่สำเร็จ — ไฟล์ใหญ่เกินที่เบราว์เซอร์รองรับ ลองใช้รูปเล็กลง";
+                    modalCotError.classList.remove("hidden");
+                  }
+                  return;
+                }
+                if (modalCotError) modalCotError.classList.add("hidden");
+                refreshModalFromBookingId(currentDetailId);
+                renderBoard();
+              })
+              .catch(function () {
+                if (modalCotError) {
+                  modalCotError.textContent = "อ่านไฟล์ไม่สำเร็จ";
+                  modalCotError.classList.remove("hidden");
+                }
+              });
+          });
+        }
+
+        if (modalCotThumbBtn) {
+          modalCotThumbBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var src = modalCotThumb && modalCotThumb.getAttribute("src");
+            if (src) openSlipLightbox(src);
+          });
+        }
+
+        if (slipLightboxClose) slipLightboxClose.addEventListener("click", closeSlipLightbox);
+        if (slipLightboxBackdrop) slipLightboxBackdrop.addEventListener("click", closeSlipLightbox);
+
+        if (validationModalOk) {
+          validationModalOk.addEventListener("click", closeValidationModal);
+        }
+        if (validationModalBackdrop) {
+          validationModalBackdrop.addEventListener("click", closeValidationModal);
+        }
+
+        if (reasonModalConfirm) {
+          reasonModalConfirm.addEventListener("click", function () {
+            var t = reasonModalInput ? reasonModalInput.value.trim() : "";
+            if (!t) {
+              showValidationModal("กรุณากรอกเหตุผล");
+              return;
+            }
+            var cb = reasonModalCallback;
+            closeReasonModal();
+            if (cb) cb(t);
+          });
+        }
+        if (reasonModalCancel) {
+          reasonModalCancel.addEventListener("click", closeReasonModal);
+        }
+        if (reasonModalBackdrop) {
+          reasonModalBackdrop.addEventListener("click", closeReasonModal);
+        }
+
+        if (modalBtnSaveDesignDelay) {
+          modalBtnSaveDesignDelay.addEventListener("click", function () {
+            if (!currentDetailId || isModalFormLocked()) return;
+            var txt = modalDesignDelayReason ? modalDesignDelayReason.value.trim() : "";
+            if (!txt) {
+              showValidationModal("กรุณากรอกสาเหตุที่ส่งแบบล่าช้า");
+              return;
+            }
+            var allD = loadBookings();
+            var ixD = allD.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (ixD === -1) return;
+            allD[ixD].designDelayReason = txt;
+            touchAuditFields(allD[ixD]);
+            try {
+              saveBookings(allD);
+            } catch (e1) {
+              showValidationModal("บันทึกไม่สำเร็จ");
+              return;
+            }
+            refreshModalFromBookingId(currentDetailId);
+            renderBoard();
+          });
+        }
+
+        if (modalBtnSaveDepositSla) {
+          modalBtnSaveDepositSla.addEventListener("click", function () {
+            if (!currentDetailId || isModalFormLocked()) return;
+            if (!isManager()) return;
+            var rawDt = modalDepositSlaDatetime && modalDepositSlaDatetime.value;
+            if (!rawDt) {
+              showValidationModal("กรุณาเลือกวัน-เวลาอ้างอิง");
+              return;
+            }
+            var msD = new Date(rawDt).getTime();
+            if (isNaN(msD)) {
+              showValidationModal("รูปแบบวัน-เวลาไม่ถูกต้อง");
+              return;
+            }
+            openReasonModal(
+              "ยืนยันแก้ไขวัน-เวลาอ้างอิง SLA",
+              "ระบุเหตุผลที่แก้ไขวัน-เวลาอ้างอิงมัดจำ (บังคับ — บันทึกในประวัติ)",
+              function (reason) {
+                var allS = loadBookings();
+                var ixS = allS.findIndex(function (x) {
+                  return x.id === currentDetailId;
+                });
+                if (ixS === -1) return;
+                var rowS = allS[ixS];
+                rowS.depositSlipUploadedAt = new Date(msD).toISOString();
+                appendAuditTrail(
+                  rowS,
+                  "แก้ไขวัน-เวลาอ้างอิง SLA มัดจำ → " +
+                    new Date(msD).toLocaleString("th-TH", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }) +
+                    " | เหตุผล: " +
+                    reason
+                );
+                touchAuditFields(rowS);
+                try {
+                  saveBookings(allS);
+                } catch (e2) {
+                  showValidationModal("บันทึกไม่สำเร็จ");
+                  return;
+                }
+                renderBoard();
+                refreshModalFromBookingId(currentDetailId);
+              }
+            );
+          });
+        }
+
+        function wireRevenueAmountInputs() {
+          function onInput() {
+            updateTotalRevenueDisplay();
+            schedulePersistRevenue();
+          }
+          if (modalDepositAmount) {
+            modalDepositAmount.addEventListener("input", onInput);
+            modalDepositAmount.addEventListener("change", onInput);
+          }
+          if (modalCotAmount) {
+            modalCotAmount.addEventListener("input", onInput);
+            modalCotAmount.addEventListener("change", onInput);
+          }
+        }
+        wireRevenueAmountInputs();
+
+        if (modalEditPlacement) {
+          modalEditPlacement.addEventListener("change", syncModalPlacementOtherVisibility);
+        }
+
+        if (modalBtnSaveCustomer) {
+          modalBtnSaveCustomer.addEventListener("click", function () {
+            if (!isManager() || !currentDetailId) return;
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (idx === -1) return;
+            var nameVal = modalEditFullName ? modalEditFullName.value.trim() : "";
+            if (!nameVal) {
+              showValidationModal("กรุณากรอกชื่อลูกค้า");
+              return;
+            }
+            var detVal = modalEditDetails ? modalEditDetails.value.trim() : "";
+            var wRaw = modalEditWidthCm ? modalEditWidthCm.value.trim() : "";
+            var hRaw = modalEditHeightCm ? modalEditHeightCm.value.trim() : "";
+            var placeVal = modalEditPlacement ? modalEditPlacement.value : "";
+            var otherVal = modalEditPlacementOther ? modalEditPlacementOther.value.trim() : "";
+            if (placeVal === "other" && !otherVal) {
+              showValidationModal("กรุณาระบุตำแหน่งรอยสักเมื่อเลือก «อื่นๆ (ระบุเอง)»");
+              return;
+            }
+            if (!placeVal) {
+              showValidationModal("กรุณาเลือกตำแหน่งรอยสัก");
+              return;
+            }
+            var row = all[idx];
+            row.fullName = nameVal;
+            row.details = detVal;
+            if (wRaw === "") {
+              delete row.widthCm;
+            } else {
+              var wn = parseFloat(wRaw.replace(/,/g, ""));
+              if (isNaN(wn) || wn < 0) {
+                showValidationModal("กรุณากรอกความกว้าง (ซม.) เป็นตัวเลขที่ถูกต้อง");
+                return;
+              }
+              row.widthCm = wn;
+            }
+            if (hRaw === "") {
+              delete row.heightCm;
+            } else {
+              var hn = parseFloat(hRaw.replace(/,/g, ""));
+              if (isNaN(hn) || hn < 0) {
+                showValidationModal("กรุณากรอกความยาว (ซม.) เป็นตัวเลขที่ถูกต้อง");
+                return;
+              }
+              row.heightCm = hn;
+            }
+            row.placement = placeVal;
+            row.placementLabel = getManagerPlacementLabelFromSelect();
+            if (placeVal === "other") {
+              row.placementOther = otherVal;
+            } else {
+              row.placementOther = "";
+            }
+            if (modalInternalNotes) {
+              var intN = modalInternalNotes.value.trim();
+              if (intN) row.internalNotes = intN;
+              else delete row.internalNotes;
+            }
+            touchAuditFields(row);
+            try {
+              saveBookings(all);
+            } catch (err) {
+              showValidationModal("บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลเต็มหรือเบราว์เซอร์จำกัด");
+              return;
+            }
+            fillCustomerFieldsInModal(row);
+            renderBoard();
+            updateAuditDisplay(row);
+          });
+        }
+
+        if (modalBtnSaveInternalNotes) {
+          modalBtnSaveInternalNotes.addEventListener("click", function () {
+            if (!currentDetailId) return;
+            if (isModalFormLocked()) {
+              notifyModalFormLocked();
+              return;
+            }
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (idx === -1) return;
+            var row = all[idx];
+            var intTxt = modalInternalNotes ? modalInternalNotes.value.trim() : "";
+            if (intTxt) row.internalNotes = intTxt;
+            else delete row.internalNotes;
+            touchAuditFields(row);
+            appendAuditTrail(row, "อัปเดตโน้ตภายในบริษัท");
+            try {
+              saveBookings(all);
+            } catch (errIn) {
+              showValidationModal("บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลเต็มหรือเบราว์เซอร์จำกัด");
+              return;
+            }
+            refreshModalFromBookingId(currentDetailId);
+            renderBoard();
+            updateAuditDisplay(row);
+          });
+        }
+
+        modalBtnSaveAppt.addEventListener("click", function () {
+          if (isModalFormLocked()) {
+            notifyModalFormLocked();
+            return;
+          }
+          var dateVal = modalApptDate.value.trim();
+          var timeVal = modalApptTime.value.trim();
+          if (!dateVal || !timeVal) {
+            modalApptError.textContent = "กรุณาเลือกทั้งวันที่และเวลาก่อนกดบันทึก";
+            modalApptError.classList.remove("hidden");
+            hideApptConfirmPanel();
+            return;
+          }
+          modalApptError.classList.add("hidden");
+
+          var allCheck = loadBookings();
+          var rowCheck = allCheck.find(function (x) {
+            return x.id === currentDetailId;
+          });
+          var allowApptWithoutDepositSlip = isManager();
+          if (!allowApptWithoutDepositSlip && !hasDepositSlip(rowCheck)) {
+            if (modalDepositError) {
+              modalDepositError.textContent =
+                "⚠️ ไม่สามารถบันทึกคิวนัดหมายได้ กรุณาอัปโหลดหลักฐานการโอนเงินมัดจำในช่องด้านบนก่อน";
+              modalDepositError.classList.remove("hidden");
+            }
+            hideApptConfirmPanel();
+            var depSec = document.getElementById("modal-deposit-section");
+            if (depSec && typeof depSec.scrollIntoView === "function") {
+              depSec.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            }
+            return;
+          }
+          if (modalDepositError) modalDepositError.classList.add("hidden");
+
+          if (rowCheck) {
+            var artistKeyAv =
+              rowCheck.artist != null && String(rowCheck.artist).trim() !== ""
+                ? String(rowCheck.artist)
+                : "anyone";
+            if (artistKeyAv !== "anyone") {
+              if (appointmentDateHitsDayOffForArtist(artistKeyAv, dateVal)) {
+                showValidationModal(
+                  "⚠️ ช่างรายนี้ลงวันหยุดในระบบแล้ว — โปรดแจ้งผู้รับผิดชอบและแก้ไขวันหยุด/วันนัด"
+                );
+                hideApptConfirmPanel();
+                return;
+              }
+              if (appointmentDateHitsTentativeForArtist(artistKeyAv, dateVal)) {
+                if (
+                  !window.confirm(
+                    "⚠️ ช่างลงสถานะว่าไม่แน่ใจในวันนี้ — กรุณาสอบถามช่างก่อนยืนยันคิว\n\nกด OK เพื่อดำเนินการต่อ หรือ Cancel เพื่อยกเลิก"
+                  )
+                ) {
+                  hideApptConfirmPanel();
+                  return;
+                }
+              }
+            }
+          }
+
+          var tmp = { appointmentDate: dateVal, appointmentTime: timeVal };
+          var previewLine = formatAppointmentBadge(tmp);
+          if (modalApptConfirmPreview) {
+            var statusHint =
+              rowCheck &&
+              hasDesignSketch(rowCheck) &&
+              hasDepositSlip(rowCheck)
+                ? "หลังยืนยัน ระบบจะบันทึกวัน-เวลานัดหมายและตั้งสถานะเป็น «นัดคิวสำเร็จ» อัตโนมัติ (เมื่อมีสลิปมัดจำ + แบบร่าง + วันนัดครบ)"
+                : "หลังยืนยัน ระบบจะบันทึกวัน-เวลานัดหมาย — สถานะ «นัดคิวสำเร็จ» เมื่อมีสลิปมัดจำ + ภาพแบบร่าง + วันนัดครบเท่านั้น มิฉะนั้นจะคง/ตั้งเป็น «รอออกแบบ» หรือ «รอนัดคิว» ตามเงื่อนไข";
+            modalApptConfirmPreview.textContent =
+              "ยืนยันบันทึกนัดหมายตามรายละเอียดด้านล่างหรือไม่?\n\n" +
+              "• " +
+              (previewLine || dateVal + " เวลา " + timeVal + " น.") +
+              "\n\n" +
+              statusHint;
+          }
+          if (modalApptConfirm) modalApptConfirm.classList.remove("hidden");
+          if (modalApptConfirm && typeof modalApptConfirm.scrollIntoView === "function") {
+            modalApptConfirm.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        });
+
+        if (modalBtnCancelConfirm) {
+          modalBtnCancelConfirm.addEventListener("click", function () {
+            hideApptConfirmPanel();
+          });
+        }
+
+        if (modalBtnConfirmAppt) {
+          modalBtnConfirmAppt.addEventListener("click", function () {
+            if (isModalFormLocked()) {
+              notifyModalFormLocked();
+              return;
+            }
+            var dateVal = modalApptDate.value.trim();
+            var timeVal = modalApptTime.value.trim();
+            if (!dateVal || !timeVal) {
+              modalApptError.textContent = "กรุณาเลือกทั้งวันที่และเวลาก่อนยืนยัน";
+              modalApptError.classList.remove("hidden");
+              return;
+            }
+            modalApptError.classList.add("hidden");
+            var all = loadBookings();
+            var idx = all.findIndex(function (x) {
+              return x.id === currentDetailId;
+            });
+            if (idx === -1) {
+              closeDetailModal();
+              return;
+            }
+            var rowPre = all[idx];
+            var allowConfirmApptWithoutDeposit = isManager();
+            if (!allowConfirmApptWithoutDeposit && !hasDepositSlip(rowPre)) {
+              if (modalDepositError) {
+                modalDepositError.textContent =
+                  "⚠️ ไม่สามารถบันทึกคิวนัดหมายได้ กรุณาอัปโหลดหลักฐานการโอนเงินมัดจำในช่องด้านบนก่อน";
+                modalDepositError.classList.remove("hidden");
+              }
+              hideApptConfirmPanel();
+              var depSec2 = document.getElementById("modal-deposit-section");
+              if (depSec2 && typeof depSec2.scrollIntoView === "function") {
+                depSec2.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              }
+              return;
+            }
+            if (modalDepositError) modalDepositError.classList.add("hidden");
+            var artistKeyAv2 =
+              rowPre.artist != null && String(rowPre.artist).trim() !== "" ? String(rowPre.artist) : "anyone";
+            if (artistKeyAv2 !== "anyone") {
+              if (appointmentDateHitsDayOffForArtist(artistKeyAv2, dateVal)) {
+                showValidationModal(
+                  "⚠️ ช่างรายนี้ลงวันหยุดในระบบแล้ว — โปรดแจ้งผู้รับผิดชอบและแก้ไขวันหยุด/วันนัด"
+                );
+                hideApptConfirmPanel();
+                return;
+              }
+              if (appointmentDateHitsTentativeForArtist(artistKeyAv2, dateVal)) {
+                if (
+                  !window.confirm(
+                    "⚠️ ช่างลงสถานะว่าไม่แน่ใจในวันนี้ — กรุณาสอบถามช่างก่อนยืนยันคิว\n\nกด OK เพื่อดำเนินการต่อ หรือ Cancel เพื่อยกเลิก"
+                  )
+                ) {
+                  hideApptConfirmPanel();
+                  return;
+                }
+              }
+            }
+            applyRevenueFieldsToBooking(all[idx]);
+            all[idx].appointmentDate = dateVal;
+            all[idx].appointmentTime = timeVal;
+            var rowAp = all[idx];
+            if (hasDesignSketch(rowAp) && hasDepositSlip(rowAp)) {
+              rowAp.status = "completed";
+            } else if (!hasDesignSketch(rowAp)) {
+              rowAp.status = "awaiting-design";
+            } else {
+              rowAp.status = "awaiting-slot";
+            }
+            touchAuditFields(rowAp);
+            try {
+              saveBookings(all);
+            } catch (err) {
+              modalApptError.textContent =
+                "บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลเต็มหรือเบราว์เซอร์จำกัด";
+              modalApptError.classList.remove("hidden");
+              return;
+            }
+            hideApptConfirmPanel();
+            refreshModalFromBookingId(currentDetailId);
+            renderBoard();
+          });
+        }
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape") return;
+          if (reasonModal && !reasonModal.classList.contains("hidden")) {
+            closeReasonModal();
+            return;
+          }
+          if (validationModal && !validationModal.classList.contains("hidden")) {
+            closeValidationModal();
+            return;
+          }
+          if (slipLightbox && !slipLightbox.classList.contains("hidden")) {
+            closeSlipLightbox();
+            return;
+          }
+          if (!detailModal.classList.contains("hidden")) {
+            closeDetailModal();
+          }
+        });
+
+        btnRefresh.addEventListener("click", renderBoard);
+
+        var btnLogout = document.getElementById("btn-logout");
+        if (btnLogout) {
+          btnLogout.addEventListener("click", function () {
+            sessionStorage.removeItem(AUTH_ROLE_KEY);
+            sessionStorage.removeItem(AUTH_USER_KEY);
+            sessionStorage.removeItem(AUTH_ARTIST_KEY);
+            try {
+              localStorage.removeItem(AUTH_ROLE_KEY);
+              localStorage.removeItem(AUTH_USER_KEY);
+              localStorage.removeItem(AUTH_ARTIST_KEY);
+            } catch (e) {}
+            window.location.replace("login.html");
+          });
+        }
+
+        window.addEventListener("storage", function (e) {
+          if (e.key === STORAGE_KEY || e.key === AVAILABILITY_STORAGE_KEY) renderBoard();
+        });
+
+        async function jarbtattooSheetsBoot() {
+          try {
+            if (typeof JarbtattooSheetsStorage !== "undefined") {
+              JarbtattooSheetsStorage.configure({
+                baseUrl:
+                  (typeof JARBTATTOO_SHEETS_URL !== "undefined" && JARBTATTOO_SHEETS_URL) || "",
+              });
+              JarbtattooSheetsStorage.initSyncBadge();
+              await JarbtattooSheetsStorage.pullAllToLocal();
+            }
+          } catch (e) {
+            console.error("[JarbtattooSheets] initial pull failed", e);
+          }
+          buildFilterDropdown();
+          if (filterArtistEl) {
+            filterArtistEl.addEventListener("change", function () {
+              filterArtistKey = filterArtistEl.value || "all";
+              renderBoard();
+            });
+          }
+
+          buildManagerPlacementSelectOnce();
+          updateAuthHeader();
+          renderBoard();
+        }
+        jarbtattooSheetsBoot();
+      })();
+    </script>
+  </body>
+</html>

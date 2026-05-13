@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jarbtattoo.bkk</title>
+    <script>
+      window.JARBTATTOO_SHEETS_URL =
+        window.JARBTATTOO_SHEETS_URL ||
+        "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
+    </script>
+    <script src="jarbtattoo-sheets-storage.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["IBM Plex Sans Thai", "IBM Plex Sans", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://script.google.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
+      input[type="file"]::file-selector-button {
+        margin-right: 0.75rem;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-white text-neutral-900 font-sans">
+    <div class="mx-auto max-w-lg px-4 py-10 sm:py-14">
+      <div class="mb-8 flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <header class="text-center sm:text-left">
+          <p
+            data-i18n="tagline"
+            class="text-[11px] font-medium uppercase tracking-[0.25em] text-neutral-400"
+          >
+            Tattoo consultation
+          </p>
+          <h1 class="mt-2 text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl">
+            Jarbtattoo.bkk
+          </h1>
+          <p
+            data-i18n="intro"
+            class="mt-3 max-w-md text-sm leading-relaxed text-neutral-500"
+          >
+            กรอกข้อมูลด้านล่างเพื่อให้ช่างประเมินงานและนัดคิวได้แม่นยำขึ้น
+          </p>
+        </header>
+        <div
+          class="flex shrink-0 rounded-full border border-neutral-200 bg-neutral-50 p-1 text-xs font-medium"
+          role="group"
+          aria-label="Language"
+        >
+          <button
+            type="button"
+            id="lang-th"
+            class="rounded-full px-4 py-2 transition bg-neutral-900 text-white"
+            aria-pressed="true"
+          >
+            ไทย
+          </button>
+          <button
+            type="button"
+            id="lang-en"
+            class="rounded-full px-4 py-2 transition text-neutral-600 hover:text-neutral-900"
+            aria-pressed="false"
+          >
+            EN
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="form-error"
+        class="mb-6 hidden rounded-xl border border-neutral-900 bg-neutral-50 px-4 py-3 text-sm text-neutral-900"
+        role="alert"
+      ></div>
+
+      <form id="booking-form" class="space-y-10" novalidate>
+        <!-- Step 1: contact -->
+        <section class="relative rounded-2xl border border-neutral-200 bg-neutral-50/50 p-6 sm:p-7">
+          <div class="absolute -top-3 left-6 bg-white px-2">
+            <span
+              class="inline-flex h-7 min-w-[2rem] items-center justify-center rounded-full border border-neutral-900 bg-neutral-900 text-xs font-semibold text-white"
+              >1</span
+            >
+          </div>
+          <h2
+            data-i18n="step1Title"
+            class="mb-5 pt-1 text-sm font-semibold uppercase tracking-wide text-neutral-800"
+          >
+            ชื่อและการติดต่อ
+          </h2>
+          <div class="space-y-5">
+            <div>
+              <label for="full-name" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelName">ชื่อ</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <input
+                id="full-name"
+                name="fullName"
+                type="text"
+                autocomplete="name"
+                data-i18n-placeholder="placeholderName"
+                placeholder="ชื่อ–นามสกุล"
+                required
+                class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              />
+            </div>
+            <div>
+              <label for="phone" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelPhone">เบอร์โทรศัพท์</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                data-i18n-placeholder="placeholderPhone"
+                placeholder="08xxxxxxxx"
+                required
+                class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              />
+            </div>
+            <div>
+              <label for="artist" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelArtist">ศิลปินที่ต้องการ (Artist)</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <select
+                id="artist"
+                name="artist"
+                required
+                class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+              >
+                <option value="" disabled selected>—</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 2: reference -->
+        <section class="relative rounded-2xl border border-neutral-200 bg-neutral-50/50 p-6 sm:p-7">
+          <div class="absolute -top-3 left-6 bg-white px-2">
+            <span
+              class="inline-flex h-7 min-w-[2rem] items-center justify-center rounded-full border border-neutral-900 bg-neutral-900 text-xs font-semibold text-white"
+              >2</span
+            >
+          </div>
+          <h2
+            data-i18n="step2Title"
+            class="mb-5 pt-1 text-sm font-semibold uppercase tracking-wide text-neutral-800"
+          >
+            อ้างอิงและรายละเอียดงาน
+          </h2>
+          <div class="space-y-5">
+            <div>
+              <p class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelInkStyle">สีงาน</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </p>
+              <div
+                class="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-2"
+                role="group"
+                aria-label="Ink style"
+              >
+                <label class="flex cursor-pointer items-center gap-2.5 text-sm text-neutral-800">
+                  <input
+                    id="ink-color"
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+                  />
+                  <span data-i18n="inkColorOpt">สี</span>
+                </label>
+                <label class="flex cursor-pointer items-center gap-2.5 text-sm text-neutral-800">
+                  <input
+                    id="ink-bw"
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+                  />
+                  <span data-i18n="inkBwOpt">ขาวดำ</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label for="details" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelDetails">อธิบายความต้องการ</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <textarea
+                id="details"
+                name="details"
+                rows="4"
+                required
+                data-i18n-placeholder="placeholderDetails"
+                placeholder="สไตล์ที่ชอบ ธีม หรือข้อความที่อยากได้..."
+                class="w-full resize-y rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              ></textarea>
+            </div>
+            <div>
+              <label for="reference" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelRef">ภาพ Reference</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <input
+                id="reference"
+                name="reference"
+                type="file"
+                accept="image/*"
+                required
+                class="block w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              />
+              <div id="preview-ref-wrap" class="mt-3 hidden">
+                <img
+                  id="preview-ref-img"
+                  alt=""
+                  data-i18n-alt="altRefPreview"
+                  class="max-h-48 w-full rounded-lg border border-neutral-200 object-contain bg-neutral-100"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 3: size + placement -->
+        <section class="relative rounded-2xl border border-neutral-200 bg-neutral-50/50 p-6 sm:p-7">
+          <div class="absolute -top-3 left-6 bg-white px-2">
+            <span
+              class="inline-flex h-7 min-w-[2rem] items-center justify-center rounded-full border border-neutral-900 bg-neutral-900 text-xs font-semibold text-white"
+              >3</span
+            >
+          </div>
+          <h2
+            data-i18n="step3Title"
+            class="mb-5 pt-1 text-sm font-semibold uppercase tracking-wide text-neutral-800"
+          >
+            ขนาดและตำแหน่งรอยสัก
+          </h2>
+          <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="width-cm" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelWidth">กว้าง (ซม.)</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <input
+                  id="width-cm"
+                  name="widthCm"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  required
+                  data-i18n-placeholder="placeholderWidth"
+                  placeholder="0"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+              <div>
+                <label for="height-cm" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelHeight">ยาว (ซม.)</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <input
+                  id="height-cm"
+                  name="heightCm"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  required
+                  data-i18n-placeholder="placeholderHeight"
+                  placeholder="0"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="placement" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelPlacement">ตำแหน่งรอยสัก</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <select
+                id="placement"
+                name="placement"
+                required
+                class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+              >
+                <option value="" disabled selected>—</option>
+              </select>
+            </div>
+
+            <div id="placement-other-wrap" class="hidden">
+              <label for="placement-other" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelPlacementOther">ระบุตำแหน่ง</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <input
+                id="placement-other"
+                name="placementOther"
+                type="text"
+                data-i18n-placeholder="placeholderPlacementOther"
+                placeholder="เช่น ข้อมือ ข้างคอ"
+                class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              />
+            </div>
+
+            <div>
+              <label for="placement-photo" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelPlacementPhoto">อัปโหลดภาพตำแหน่งรอยสัก</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <p data-i18n="hintPlacementPhoto" class="mb-2 text-xs leading-relaxed text-neutral-500">
+                ถ่ายหรือวงตำแหน่งบนร่างกายที่ต้องการสัก เพื่อให้ช่างเห็นพื้นที่ชัดเจน
+              </p>
+              <input
+                id="placement-photo"
+                name="placementPhoto"
+                type="file"
+                accept="image/*"
+                required
+                class="block w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              />
+              <div id="preview-place-wrap" class="mt-3 hidden">
+                <img
+                  id="preview-place-img"
+                  alt=""
+                  data-i18n-alt="altPlacePreview"
+                  class="max-h-48 w-full rounded-lg border border-neutral-200 object-contain bg-neutral-100"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <button
+          type="submit"
+          id="submit-btn"
+          data-i18n="submitBtn"
+          class="w-full rounded-xl bg-neutral-900 py-4 text-sm font-semibold tracking-wide text-white transition hover:bg-neutral-800 active:scale-[0.99]"
+        >
+          บันทึกข้อมูล
+        </button>
+      </form>
+
+      <footer class="mt-12 border-t border-neutral-200 pt-8 text-center text-xs text-neutral-400">
+        <span data-i18n="footer">Jarbtattoo.bkk · ฟอร์มจำลองสำหรับการจองคิวปรึกษา</span>
+        <span class="mx-1 text-neutral-300">·</span>
+        <a
+          href="admin.html"
+          class="font-medium text-neutral-500 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-800"
+          data-i18n="adminLink"
+          >แดชบอร์ดช่าง</a
+        >
+      </footer>
+    </div>
+
+    <!-- Modal -->
+    <div
+      id="modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-[2px]"
+      aria-hidden="true"
+      role="dialog"
+      aria-labelledby="modal-title"
+      aria-modal="true"
+    >
+      <div class="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl">
+        <div
+          class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50"
+        >
+          <svg
+            class="h-6 w-6 text-neutral-900"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 id="modal-title" data-i18n="modalTitle" class="text-center text-base font-semibold text-neutral-900">
+          ส่งข้อมูลเรียบร้อย
+        </h3>
+        <p
+          id="modal-body"
+          data-i18n="modalBody"
+          class="mt-3 text-center text-sm leading-relaxed text-neutral-600"
+        >
+          ส่งข้อมูลให้ช่าง Folk ประเมินเรียบร้อยแล้ว
+        </p>
+        <button
+          type="button"
+          id="modal-close"
+          data-i18n="modalClose"
+          class="mt-6 w-full rounded-xl border border-neutral-300 bg-white py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+        >
+          ปิด
+        </button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        /** ชุดข้อมูลการจอง — ใช้ร่วมกับ admin.html */
+        var STORAGE_KEY = "jarbtattoo-bookings-v1";
+
+        /** ศิลปิน — คีย์ต้องตรงกับ admin.html */
+        var ARTIST_OPTIONS = [
+          { value: "anyone", th: "ยังไม่มีในใจ (Anyone)", en: "Anyone (no preference)" },
+          { value: "mr-bac", th: "Mr.Bac", en: "Mr.Bac" },
+          { value: "sra", th: "Sra", en: "Sra" },
+          { value: "senshin", th: "Senshin", en: "Senshin" },
+          { value: "studiochi", th: "STUDIOCHI", en: "STUDIOCHI" },
+        ];
+
+        /** Bilingual labels: Thai shows English (ไทย); English mode shows English only */
+        var PLACEMENT_OPTIONS = [
+          { value: "forearm", th: "Forearm (แขนท่อนล่าง)", en: "Forearm" },
+          { value: "inner-arm", th: "Inner Arm (ท้องแขน)", en: "Inner Arm" },
+          { value: "upper-arm", th: "Upper Arm (ต้นแขน)", en: "Upper Arm" },
+          { value: "shoulder", th: "Shoulder (ไหล่)", en: "Shoulder" },
+          { value: "bicep", th: "Bicep (กล้ามแขนด้านหน้า)", en: "Bicep" },
+          { value: "thigh", th: "Thigh (ต้นขา)", en: "Thigh" },
+          { value: "upper-back", th: "Upper Back (หลังส่วนบน)", en: "Upper Back" },
+          { value: "wrist", th: "Wrist (ข้อมือ)", en: "Wrist" },
+          { value: "calf", th: "Calf (น่อง)", en: "Calf" },
+          { value: "half-sleeve", th: "Half Sleeve (แขนเสื้อครึ่งท่อน)", en: "Half Sleeve" },
+          { value: "shoulder-blade", th: "Shoulder Blade (สะบัก)", en: "Shoulder Blade" },
+          { value: "leg", th: "Leg (ขา)", en: "Leg" },
+          { value: "hip", th: "Hip (สะโพก)", en: "Hip" },
+          { value: "chest", th: "Chest (หน้าอก)", en: "Chest" },
+          { value: "arm", th: "Arm (แขน)", en: "Arm" },
+          { value: "side-flank", th: "Side (Flank) (ข้างลำตัว)", en: "Side (Flank)" },
+          { value: "rib", th: "Rib (ซี่โครง)", en: "Rib" },
+          { value: "back-of-hand", th: "Back of Hand (หลังมือ)", en: "Back of Hand" },
+          { value: "shin", th: "Shin (หน้าแข้ง)", en: "Shin" },
+          { value: "ankle", th: "Ankle (ข้อเท้า)", en: "Ankle" },
+          { value: "hand", th: "Hand (มือ)", en: "Hand" },
+          {
+            value: "collarbone-clavicle",
+            th: "Collarbone (Clavicle) (กระดูกไหปลาร้า)",
+            en: "Collarbone (Clavicle)",
+          },
+          { value: "collarbone", th: "Collarbone (ไหปลาร้า)", en: "Collarbone" },
+          { value: "spine", th: "Spine (กระดูกสันหลัง)", en: "Spine" },
+          { value: "back", th: "Back (หลัง)", en: "Back" },
+          { value: "nape", th: "Nape (ท้ายทอย)", en: "Nape" },
+          { value: "neck", th: "Neck (คอ)", en: "Neck" },
+          { value: "finger", th: "Finger (นิ้วมือ)", en: "Finger" },
+          { value: "sleeve", th: "Sleeve (แขนเสื้อ/รอยสักเต็มแขน)", en: "Sleeve" },
+          { value: "sternum", th: "Sternum (กระดูกลิ้นปี่)", en: "Sternum" },
+          { value: "behind-ear", th: "Behind the Ear (หลังใบหู)", en: "Behind the Ear" },
+          { value: "foot", th: "Foot (เท้า)", en: "Foot" },
+          { value: "stomach", th: "Stomach (หน้าท้อง)", en: "Stomach" },
+          { value: "cleavage", th: "Cleavage (ร่องอก)", en: "Cleavage" },
+          { value: "lower-abdomen", th: "Lower Abdomen (ท้องน้อย)", en: "Lower Abdomen" },
+          { value: "inner-elbow", th: "Inner Elbow (ข้อพับแขน)", en: "Inner Elbow" },
+          { value: "inner-thigh", th: "Inner Thigh (ต้นขาด้านใน)", en: "Inner Thigh" },
+          { value: "butt", th: "Butt (ก้น)", en: "Butt" },
+          { value: "armpit", th: "Armpit (รักแร้)", en: "Armpit" },
+          { value: "back-of-neck", th: "Back of Neck (หลังคอ)", en: "Back of Neck" },
+          { value: "behind-knee", th: "Behind the Knee (ข้อพับเข่า)", en: "Behind the Knee" },
+          { value: "knee", th: "Knee (เข่า)", en: "Knee" },
+          { value: "lower-back", th: "Lower Back (หลังส่วนล่าง)", en: "Lower Back" },
+          { value: "elbow", th: "Elbow (ข้อศอก)", en: "Elbow" },
+          { value: "head", th: "Head (หัว)", en: "Head" },
+          {
+            value: "navel",
+            th: "Navel (Belly Button) (สะดือ)",
+            en: "Navel (Belly Button)",
+          },
+          { value: "scalp", th: "Scalp (หนังศีรษะ)", en: "Scalp" },
+          { value: "belly-button", th: "Belly Button (สะดือ)", en: "Belly Button" },
+          { value: "pelvic", th: "Pelvic (อุ้งเชิงกราน)", en: "Pelvic" },
+          { value: "temple", th: "Temple (ขมับ)", en: "Temple" },
+          { value: "underbust", th: "Underbust (ใต้ราวนม)", en: "Underbust" },
+        ];
+
+        var I18N = {
+          th: {
+            tagline: "Tattoo consultation",
+            intro: "กรอกข้อมูลด้านล่างเพื่อให้ช่างประเมินงานและนัดคิวได้แม่นยำขึ้น",
+            step1Title: "ชื่อและการติดต่อ",
+            labelName: "ชื่อ",
+            labelPhone: "เบอร์โทรศัพท์",
+            requiredMark: "*",
+            placeholderName: "ชื่อ–นามสกุล",
+            placeholderPhone: "08xxxxxxxx",
+            labelArtist: "ศิลปินที่ต้องการ (Artist)",
+            artistPlaceholder: "— เลือกศิลปิน —",
+            step2Title: "อ้างอิงและรายละเอียดงาน",
+            labelRef: "ภาพ Reference",
+            labelDetails: "อธิบายความต้องการ",
+            placeholderDetails: "สไตล์ที่ชอบ ธีม หรือข้อความที่อยากได้...",
+            altRefPreview: "ตัวอย่างภาพอ้างอิง",
+            labelInkStyle: "สีงาน (เลือก 1 อย่าง)",
+            inkColorOpt: "สี",
+            inkBwOpt: "ขาวดำ",
+            step3Title: "ขนาดและตำแหน่งรอยสัก",
+            labelWidth: "กว้าง (ซม.)",
+            labelHeight: "ยาว (ซม.)",
+            placeholderWidth: "เช่น 10",
+            placeholderHeight: "เช่น 15",
+            labelPlacement: "ตำแหน่งรอยสัก",
+            selectPlaceholder: "— เลือกตำแหน่ง —",
+            optUnsure: "ยังไม่แน่ใจ",
+            optOther: "ตำแหน่งอื่น",
+            labelPlacementOther: "ระบุตำแหน่ง",
+            placeholderPlacementOther: "เช่น ข้อมือ ข้างคอ",
+            labelPlacementPhoto: "อัปโหลดภาพตำแหน่งรอยสัก",
+            hintPlacementPhoto:
+              "ถ่ายหรือวงตำแหน่งบนร่างกายที่ต้องการสัก เพื่อให้ช่างเห็นพื้นที่ชัดเจน",
+            altPlacePreview: "ตัวอย่างภาพตำแหน่ง",
+            submitBtn: "บันทึกข้อมูล",
+            footer: "Jarbtattoo.bkk · ฟอร์มจำลองสำหรับการจองคิวปรึกษา",
+            modalTitle: "ส่งข้อมูลเรียบร้อย",
+            modalBody: "ส่งข้อมูลให้ช่าง Folk ประเมินเรียบร้อยแล้ว",
+            modalClose: "ปิด",
+            formError: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน",
+            formErrorInk: "กรุณาเลือกว่าต้องการสีหรือขาวดำ (เลือกได้อย่างใดอย่างหนึ่ง)",
+            formErrorOther: "กรุณาระบุตำแหน่งเมื่อเลือก “ตำแหน่งอื่น”",
+            storageQuota:
+              "บันทึกไม่สำเร็จ — ภาพมีขนาดใหญ่เกินที่เบราว์เซอร์รองรับ ลองใช้ไฟล์เล็กลง",
+            saveReadError: "ไม่สามารถอ่านไฟล์ภาพได้ กรุณาลองใหม่",
+            adminLink: "แดชบอร์ดช่าง",
+          },
+          en: {
+            tagline: "Tattoo consultation",
+            intro: "Fill in the details below so the artist can assess your piece and schedule accurately.",
+            step1Title: "Name & contact",
+            labelName: "Full name",
+            labelPhone: "Phone number",
+            requiredMark: "*",
+            placeholderName: "First and last name",
+            placeholderPhone: "+66 …",
+            labelArtist: "Preferred artist",
+            artistPlaceholder: "— Select artist —",
+            step2Title: "Reference & brief",
+            labelRef: "Reference image",
+            labelDetails: "Describe what you want",
+            placeholderDetails: "Style, theme, lettering, or ideas…",
+            altRefPreview: "Reference preview",
+            labelInkStyle: "Ink (pick one)",
+            inkColorOpt: "Color",
+            inkBwOpt: "Black & grey / B&W",
+            step3Title: "Size & placement",
+            labelWidth: "Width (cm)",
+            labelHeight: "Height (cm)",
+            placeholderWidth: "e.g. 10",
+            placeholderHeight: "e.g. 15",
+            labelPlacement: "Tattoo placement",
+            selectPlaceholder: "— Select placement —",
+            optUnsure: "Not sure yet",
+            optOther: "Other placement",
+            labelPlacementOther: "Specify placement",
+            placeholderPlacementOther: "e.g. wrist, side of neck",
+            labelPlacementPhoto: "Photo of placement on body",
+            hintPlacementPhoto:
+              "Upload a photo marking the area on your body so the artist can see the space clearly.",
+            altPlacePreview: "Placement preview",
+            submitBtn: "Submit for review",
+            footer: "Jarbtattoo.bkk · Demo booking form",
+            modalTitle: "Submitted",
+            modalBody: "Your details have been sent to Folk for review.",
+            modalClose: "Close",
+            formError: "Please complete all required fields.",
+            formErrorInk: "Please choose color or black & grey / B&W (one only).",
+            formErrorOther: "Please specify the placement when “Other placement” is selected.",
+            storageQuota:
+              "Could not save — images are too large for browser storage. Try smaller files.",
+            saveReadError: "Could not read image files. Please try again.",
+            adminLink: "Artist dashboard",
+          },
+        };
+
+        var LANG_KEY = "jarbtattoo-lang";
+        var lang = localStorage.getItem(LANG_KEY) || "th";
+        var btnTh = document.getElementById("lang-th");
+        var btnEn = document.getElementById("lang-en");
+
+        function setLang(next) {
+          lang = next;
+          localStorage.setItem(LANG_KEY, lang);
+          document.documentElement.lang = lang === "th" ? "th" : "en";
+          applyI18n();
+          btnTh.classList.toggle("bg-neutral-900", lang === "th");
+          btnTh.classList.toggle("text-white", lang === "th");
+          btnTh.classList.toggle("text-neutral-600", lang !== "th");
+          btnTh.setAttribute("aria-pressed", lang === "th" ? "true" : "false");
+          btnEn.classList.toggle("bg-neutral-900", lang === "en");
+          btnEn.classList.toggle("text-white", lang === "en");
+          btnEn.classList.toggle("text-neutral-600", lang !== "en");
+          btnEn.setAttribute("aria-pressed", lang === "en" ? "true" : "false");
+        }
+
+        function t(key) {
+          return (I18N[lang] && I18N[lang][key]) || key;
+        }
+
+        function rebuildArtistSelect() {
+          var sel = document.getElementById("artist");
+          if (!sel) return;
+          var dict = I18N[lang];
+          var preserved = sel.value;
+          while (sel.options.length > 1) {
+            sel.remove(1);
+          }
+          ARTIST_OPTIONS.forEach(function (row) {
+            var opt = document.createElement("option");
+            opt.value = row.value;
+            opt.textContent = lang === "th" ? row.th : row.en;
+            sel.appendChild(opt);
+          });
+          if (sel.options[0]) sel.options[0].text = dict.artistPlaceholder;
+          var found = false;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === preserved) {
+              sel.selectedIndex = i;
+              found = true;
+              break;
+            }
+          }
+          if (!found) sel.selectedIndex = 0;
+        }
+
+        function rebuildPlacementSelect() {
+          var sel = document.getElementById("placement");
+          if (!sel) return;
+          var dict = I18N[lang];
+          var preserved = sel.value;
+          while (sel.options.length > 1) {
+            sel.remove(1);
+          }
+          PLACEMENT_OPTIONS.forEach(function (row) {
+            var opt = document.createElement("option");
+            opt.value = row.value;
+            opt.textContent = lang === "th" ? row.th : row.en;
+            sel.appendChild(opt);
+          });
+          var optUnsure = document.createElement("option");
+          optUnsure.value = "unsure";
+          optUnsure.textContent = dict.optUnsure;
+          sel.appendChild(optUnsure);
+          var optOther = document.createElement("option");
+          optOther.value = "other";
+          optOther.textContent = dict.optOther;
+          sel.appendChild(optOther);
+          if (sel.options[0]) sel.options[0].text = dict.selectPlaceholder;
+          var found = false;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === preserved) {
+              sel.selectedIndex = i;
+              found = true;
+              break;
+            }
+          }
+          if (!found) sel.selectedIndex = 0;
+          var wrap = document.getElementById("placement-other-wrap");
+          var otherInput = document.getElementById("placement-other");
+          if (wrap && otherInput) {
+            var showOther = sel.value === "other";
+            wrap.classList.toggle("hidden", !showOther);
+            otherInput.required = showOther;
+          }
+        }
+
+        function applyI18n() {
+          var dict = I18N[lang];
+          document.querySelectorAll("[data-i18n]").forEach(function (el) {
+            var k = el.getAttribute("data-i18n");
+            if (dict[k] !== undefined) el.textContent = dict[k];
+          });
+          document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+            var k = el.getAttribute("data-i18n-placeholder");
+            if (dict[k] !== undefined) el.setAttribute("placeholder", dict[k]);
+          });
+          document.querySelectorAll("[data-i18n-alt]").forEach(function (el) {
+            var k = el.getAttribute("data-i18n-alt");
+            if (dict[k] !== undefined) el.setAttribute("alt", dict[k]);
+          });
+          rebuildPlacementSelect();
+          rebuildArtistSelect();
+        }
+
+        btnTh.addEventListener("click", function () {
+          setLang("th");
+        });
+        btnEn.addEventListener("click", function () {
+          setLang("en");
+        });
+
+        var form = document.getElementById("booking-form");
+        var formError = document.getElementById("form-error");
+        var fileRef = document.getElementById("reference");
+        var previewRefWrap = document.getElementById("preview-ref-wrap");
+        var previewRefImg = document.getElementById("preview-ref-img");
+        var filePlace = document.getElementById("placement-photo");
+        var previewPlaceWrap = document.getElementById("preview-place-wrap");
+        var previewPlaceImg = document.getElementById("preview-place-img");
+        var placement = document.getElementById("placement");
+        var placementOtherWrap = document.getElementById("placement-other-wrap");
+        var placementOther = document.getElementById("placement-other");
+        var artistSelect = document.getElementById("artist");
+        var modal = document.getElementById("modal");
+        var modalClose = document.getElementById("modal-close");
+
+        function bindPreview(input, wrap, img) {
+          input.addEventListener("change", function () {
+            var file = input.files && input.files[0];
+            if (!file || !file.type.startsWith("image/")) {
+              wrap.classList.add("hidden");
+              img.removeAttribute("src");
+              return;
+            }
+            var url = URL.createObjectURL(file);
+            img.onload = function () {
+              URL.revokeObjectURL(url);
+            };
+            img.src = url;
+            wrap.classList.remove("hidden");
+          });
+        }
+        bindPreview(fileRef, previewRefWrap, previewRefImg);
+        bindPreview(filePlace, previewPlaceWrap, previewPlaceImg);
+
+        function updatePlacementOther() {
+          var isOther = placement.value === "other";
+          placementOtherWrap.classList.toggle("hidden", !isOther);
+          placementOther.required = isOther;
+        }
+        placement.addEventListener("change", updatePlacementOther);
+        updatePlacementOther();
+
+        var inkColorCb = document.getElementById("ink-color");
+        var inkBwCb = document.getElementById("ink-bw");
+        if (inkColorCb && inkBwCb) {
+          inkColorCb.addEventListener("change", function () {
+            if (inkColorCb.checked) inkBwCb.checked = false;
+          });
+          inkBwCb.addEventListener("change", function () {
+            if (inkBwCb.checked) inkColorCb.checked = false;
+          });
+        }
+
+        function openModal() {
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+          document.body.style.overflow = "";
+        }
+
+        function showFormError(message) {
+          formError.textContent = message;
+          formError.classList.remove("hidden");
+        }
+
+        function hideFormError() {
+          formError.classList.add("hidden");
+        }
+
+        function readFileAsDataURL(file) {
+          return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () {
+              resolve(reader.result);
+            };
+            reader.onerror = function () {
+              reject(reader.error);
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        function loadBookingsFromStorage() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            var arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr : [];
+          } catch (err) {
+            return [];
+          }
+        }
+
+        var submitBtn = document.getElementById("submit-btn");
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          hideFormError();
+
+          var nameOk = document.getElementById("full-name").value.trim().length > 0;
+          var phoneOk = document.getElementById("phone").value.trim().length > 0;
+          var detailsOk = document.getElementById("details").value.trim().length > 0;
+          var w = parseFloat(document.getElementById("width-cm").value);
+          var h = parseFloat(document.getElementById("height-cm").value);
+          var sizeOk =
+            !isNaN(w) &&
+            !isNaN(h) &&
+            w > 0 &&
+            h > 0 &&
+            document.getElementById("width-cm").value !== "" &&
+            document.getElementById("height-cm").value !== "";
+          var refOk = fileRef.files && fileRef.files.length > 0;
+          var placeOk = filePlace.files && filePlace.files.length > 0;
+          var placeSel = placement.value !== "";
+          var otherOk = placement.value !== "other" || placementOther.value.trim().length > 0;
+          var artistOk = artistSelect && artistSelect.value !== "";
+          var inkColorOk = inkColorCb && inkColorCb.checked;
+          var inkBwOk = inkBwCb && inkBwCb.checked;
+          var inkOk = inkColorOk !== inkBwOk;
+
+          if (
+            !nameOk ||
+            !phoneOk ||
+            !detailsOk ||
+            !sizeOk ||
+            !refOk ||
+            !placeOk ||
+            !placeSel ||
+            !otherOk ||
+            !artistOk ||
+            !inkOk
+          ) {
+            if (!inkOk) {
+              showFormError(t("formErrorInk"));
+            } else if (!otherOk && placement.value === "other") {
+              showFormError(t("formErrorOther"));
+            } else {
+              showFormError(t("formError"));
+            }
+            return;
+          }
+
+          var refFile = fileRef.files[0];
+          var placeFile = filePlace.files[0];
+          var placementLabel = "";
+          if (placement.options[placement.selectedIndex]) {
+            placementLabel = placement.options[placement.selectedIndex].textContent.trim();
+          }
+          var artistKey = artistSelect.value;
+          var artistLabel = "";
+          if (artistSelect.options[artistSelect.selectedIndex]) {
+            artistLabel = artistSelect.options[artistSelect.selectedIndex].textContent.trim();
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.classList.add("opacity-60", "cursor-not-allowed");
+
+          Promise.all([readFileAsDataURL(refFile), readFileAsDataURL(placeFile)])
+            .then(function (imgs) {
+              var bookings = loadBookingsFromStorage();
+              var inkStyle = inkColorOk ? "color" : "blackwhite";
+              var inkStyleLabel = inkColorOk ? t("inkColorOpt") : t("inkBwOpt");
+              var booking = {
+                id: "b_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10),
+                createdAt: new Date().toISOString(),
+                fullName: document.getElementById("full-name").value.trim(),
+                phone: document.getElementById("phone").value.trim(),
+                details: document.getElementById("details").value.trim(),
+                inkStyle: inkStyle,
+                inkStyleLabel: inkStyleLabel,
+                widthCm: w,
+                heightCm: h,
+                placement: placement.value,
+                placementLabel: placementLabel,
+                placementOther: placementOther.value.trim(),
+                artist: artistKey,
+                artistLabel: artistLabel,
+                referenceImage: imgs[0],
+                placementImage: imgs[1],
+                status: "pending-review",
+              };
+              bookings.push(booking);
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+                if (
+                  typeof JarbtattooSheetsStorage !== "undefined" &&
+                  JarbtattooSheetsStorage.syncAfterLocalWrite
+                ) {
+                  JarbtattooSheetsStorage.syncAfterLocalWrite(STORAGE_KEY, bookings);
+                }
+              } catch (err) {
+                showFormError(t("storageQuota"));
+                return;
+              }
+              form.reset();
+              previewRefWrap.classList.add("hidden");
+              previewPlaceWrap.classList.add("hidden");
+              previewRefImg.removeAttribute("src");
+              previewPlaceImg.removeAttribute("src");
+              rebuildPlacementSelect();
+              rebuildArtistSelect();
+              updatePlacementOther();
+              openModal();
+            })
+            .catch(function () {
+              showFormError(t("saveReadError"));
+            })
+            .finally(function () {
+              submitBtn.disabled = false;
+              submitBtn.classList.remove("opacity-60", "cursor-not-allowed");
+            });
+        });
+
+        modalClose.addEventListener("click", closeModal);
+        modal.addEventListener("click", function (e) {
+          if (e.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+        });
+
+        setLang(lang);
+      })();
+    </script>
+  </body>
+</html>
