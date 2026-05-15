@@ -12,21 +12,19 @@
  * === ชื่อแท็บชีต (ต้องตรงกับ getSheetMap_) ===
  *   bookings, availability, contentTasks, contentFormatTags, contentPillarTags,
  *   usersList, customRoles
- *   ข้อมูลเก็บเป็น JSON ในเซลล์ A1 ต่อชีต (ถ้ายังไม่มีชีต จะถูกสร้างตอน save ครั้งแรก)
+ *
+ * === รูปแบบเก็บข้อมูล ===
+ *   - Array ของ object (เช่น bookings): แถวแรก = หัวคอลัมน์, แถวถัดไป = 1 รายการ/แถว
+ *   - ข้อมูลก้อนเดียว / array ว่าง: JSON ในเซลล์ A1 (รองรับข้อมูลเก่า)
+ *   - readJson_ อ่านได้ทั้งแบบตาราง (ใหม่) และ A1 JSON (เก่า) อัตโนมัติ
  *
  * === API ฝั่งเว็บ (jarbtattoo-sheets-storage.js) ===
  *   GET  ?action=loadAll[&_secret=...]
- *   POST body: JSON { action:"save", key:"...", payload: ... } [, _secret ]
- *   Content-Type จากเว็บมักเป็น text/plain;charset=utf-8
+ *   POST { action:"save", key:"...", payload: ... }
+ *   ตอบกลับ bookings หลังแปลงรูป: { ok: true, bookings: [...] }
  *
  * === Script property (ไม่บังคับ) ===
- *   คีย์ JARBTATTOO_WEB_SECRET — ถ้าตั้งค่าแล้ว ต้องส่ง _secret ใน query (GET) หรือใน body (POST)
- *   ให้ตรงกับค่าที่ส่งจาก JarbtattooSheetsStorage.configure({ secret: "..." })
- *
- * === หมายเหตุ ===
- *   เซลล์ A1 จำกัดความยาว ~50,000 ตัวอักษร — processBookingImages_ แปลง data URL เป็นลิงก์ Drive
- *   สำหรับ referenceImage, placementImage, depositSlipImage, designSketchImage, cotSlipImage
- *   ครั้งแรกที่ใช้ DriveApp ระบบจะขอสิทธิ์ OAuth — ยอมรับตามขั้นตอน Google
+ *   JARBTATTOO_WEB_SECRET — ส่ง _secret ใน query (GET) หรือ body (POST)
  */
 
 /** ชื่อ property ใน File > Project settings > Script properties */
@@ -46,7 +44,7 @@ function getSheetMap_() {
 }
 
 /**
- * GET: ไม่มี ?action → ข้อความสุขภาพ (เปิด URL ในเบราว์เซอร์)
+ * GET: ไม่มี ?action → ข้อความสุขภาพ
  *      ?action=loadAll → JSON ทุก store
  */
 function doGet(e) {
@@ -107,11 +105,13 @@ function doPost(e) {
         return jsonOut_({ ok: false, error: "unknown key: " + key });
       }
       var payload = body.payload;
+      var response = { ok: true };
       if (key === "jarbtattoo-bookings-v1") {
         payload = processBookingImages_(payload);
+        response.bookings = payload;
       }
       writeJson_(ss, shName, payload);
-      return jsonOut_({ ok: true });
+      return jsonOut_(response);
     }
     return jsonOut_({ ok: false, error: "unknown POST action" });
   } catch (err) {
@@ -144,22 +144,145 @@ function checkSecret_(querySecret, bodySecret) {
   return got === String(expected);
 }
 
+/**
+ * อ่านข้อมูลจากชีต — รองรับทั้งแบบตาราง (แยกคอลัมน์) และ JSON ใน A1 (ข้อมูลเก่า)
+ * @returns {Array|Object|null}
+ */
 function readJson_(ss, sheetName) {
   var sh = ss.getSheetByName(sheetName);
   if (!sh) return null;
-  var v = sh.getRange("A1").getValue();
-  if (v === "" || v === null) return null;
-  try {
-    return JSON.parse(String(v));
-  } catch (err) {
-    return null;
+  var lastRow = sh.getLastRow();
+  var lastCol = sh.getLastColumn();
+  if (lastRow === 0 || lastCol === 0) return null;
+
+  // แบบเก่า: JSON ทั้งก้อนใน A1 เดียว
+  if (lastRow === 1 && lastCol === 1) {
+    var v = sh.getRange("A1").getValue();
+    if (v === "" || v === null) return null;
+    try {
+      return JSON.parse(String(v));
+    } catch (err) {
+      return null;
+    }
   }
+
+  // แบบใหม่: แถว 1 = headers, แถว 2+ = ข้อมูล
+  var data = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  var headers = data[0];
+  var rows = data.slice(1);
+  var list = [];
+
+  for (var r = 0; r < rows.length; r++) {
+    var row = rows[r];
+    var empty = true;
+    for (var c = 0; c < row.length; c++) {
+      if (row[c] !== "" && row[c] != null) {
+        empty = false;
+        break;
+      }
+    }
+    if (empty) continue;
+
+    var obj = {};
+    for (var i = 0; i < headers.length; i++) {
+      var h = headers[i];
+      if (h === "" || h == null) continue;
+      var val = row[i];
+      if (typeof val === "string") {
+        var trimmed = val.trim();
+        if (trimmed.indexOf("{") === 0 || trimmed.indexOf("[") === 0) {
+          try {
+            val = JSON.parse(trimmed);
+          } catch (parseErr) {}
+        }
+      }
+      obj[String(h)] = val;
+    }
+    list.push(obj);
+  }
+
+  return list;
 }
 
+/** แปลงค่า cell — object/array เก็บเป็น JSON string */
+function cellValue_(val) {
+  if (val === undefined || val === null) return "";
+  if (typeof val === "object") return JSON.stringify(val);
+  return val;
+}
+
+/** รวมชื่อคอลัมน์จากทุกแถว (ลำดับตามรายการแรกที่พบ) */
+function collectHeaders_(items) {
+  var seen = {};
+  var headers = [];
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    if (!item || typeof item !== "object") continue;
+    var keys = Object.keys(item);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (!seen[key]) {
+        seen[key] = true;
+        headers.push(key);
+      }
+    }
+  }
+  return headers;
+}
+
+/**
+ * บันทึกลงชีต
+ * - Array ที่มีข้อมูล → แยกคอลัมน์ (ลดปัญหาเซลล์ A1 จำกัด ~50k ตัวอักษร)
+ * - อื่นๆ → JSON ใน A1
+ */
 function writeJson_(ss, sheetName, payload) {
   var sh = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
   sh.clear();
-  sh.getRange("A1").setValue(JSON.stringify(payload));
+
+  if (payload === undefined || payload === null) {
+    return;
+  }
+
+  if (!Array.isArray(payload) || payload.length === 0) {
+    sh.getRange("A1").setValue(JSON.stringify(payload));
+    return;
+  }
+
+  var headers = collectHeaders_(payload);
+  if (headers.length === 0) {
+    sh.getRange("A1").setValue(JSON.stringify(payload));
+    return;
+  }
+
+  sh.getRange(1, 1, 1, headers.length)
+    .setValues([headers])
+    .setFontWeight("bold")
+    .setBackground("#f3f3f3");
+
+  var rows = [];
+  for (var i = 0; i < payload.length; i++) {
+    var item = payload[i];
+    if (!item || typeof item !== "object") {
+      rows.push(
+        headers.map(function () {
+          return "";
+        })
+      );
+      continue;
+    }
+    rows.push(
+      headers.map(function (h) {
+        return cellValue_(item[h]);
+      })
+    );
+  }
+
+  if (rows.length > 0) {
+    sh.getRange(2, 1, 1 + rows.length, headers.length).setValues(rows);
+    try {
+      sh.autoResizeColumns(1, headers.length);
+    } catch (resizeErr) {}
+  }
 }
 
 function jsonOut_(obj) {
@@ -183,13 +306,11 @@ function processBookingImages_(payload) {
     return folder;
   }
 
-  /**
-   * แปลง data URL เป็นลิงก์ Drive — ลดขนาด JSON ใน A1 (จำกัด ~50k ตัวอักษร/เซลล์)
-   * ครอบคลุมรูปจากฟอร์มจอง + สลิป/แบบที่อัปโหลดในแอดมิน
-   */
   function uploadField_(booking, fieldName, filePrefix) {
     var v = booking[fieldName];
-    if (!v || String(v).indexOf("data:image") !== 0) return;
+    if (!v) return;
+    if (isRemoteImageUrl_(v)) return;
+    if (String(v).indexOf("data:image") !== 0) return;
     var id = booking.id != null ? String(booking.id) : String(Date.now());
     booking[fieldName] = uploadBase64ToDrive_(String(v), filePrefix + "_" + id, folder_());
   }
@@ -208,9 +329,17 @@ function processBookingImages_(payload) {
   return payload;
 }
 
-/**
- * ค้นหาหรือสร้างโฟลเดอร์สำหรับเก็บรูป
- */
+/** รูปที่อัปโหลด Drive แล้ว หรือเป็น URL ภายนอก — ไม่แปลงซ้ำ */
+function isRemoteImageUrl_(v) {
+  if (v === "" || v == null) return false;
+  var s = String(v).trim();
+  if (s.indexOf("data:image") === 0) return false;
+  if (s.indexOf("drive.google.com") !== -1) return true;
+  if (s.indexOf("googleusercontent.com") !== -1) return true;
+  if (s.indexOf("http://") === 0 || s.indexOf("https://") === 0) return true;
+  return false;
+}
+
 function getOrCreateImageFolder_() {
   var folderName = "Jarbtattoo_Images";
   var folders = DriveApp.getFoldersByName(folderName);
@@ -223,9 +352,6 @@ function getOrCreateImageFolder_() {
   return newFolder;
 }
 
-/**
- * แยก data URL แล้วสร้างไฟล์ใน Drive — ตั้งลิงก์ให้เปิดดูรูปนอก Google ได้
- */
 function uploadBase64ToDrive_(base64String, filename, folder) {
   try {
     var splitData = String(base64String).split(",");

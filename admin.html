@@ -227,6 +227,10 @@
               <dd id="modal-phone" class="text-neutral-900">—</dd>
             </div>
             <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
+              <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">เดือน/ปีเกิด</dt>
+              <dd id="modal-birth" class="text-neutral-900">—</dd>
+            </div>
+            <div class="flex flex-col gap-0.5 border-b border-neutral-100 pb-3">
               <dt class="text-xs font-medium uppercase tracking-wide text-neutral-400">ศิลปินที่เลือก</dt>
               <dd id="modal-artist" class="font-medium text-neutral-900">—</dd>
             </div>
@@ -1358,6 +1362,7 @@
         var modalImages = document.getElementById("modal-images");
         var modalFullName = document.getElementById("modal-full-name");
         var modalPhone = document.getElementById("modal-phone");
+        var modalBirth = document.getElementById("modal-birth");
         var modalArtist = document.getElementById("modal-artist");
         var modalSize = document.getElementById("modal-size");
         var modalInkStyle = document.getElementById("modal-ink-style");
@@ -1510,6 +1515,7 @@
             var copy = Object.assign({}, b);
             copy.status = "cancelled";
             copy.cancelledAt = new Date().toISOString();
+            copy._synced = false;
             return copy;
           });
           if (!found) return;
@@ -1532,6 +1538,50 @@
           } catch (e) {
             return "—";
           }
+        }
+
+        var BIRTH_MONTH_TH = [
+          "",
+          "มกราคม",
+          "กุมภาพันธ์",
+          "มีนาคม",
+          "เมษายน",
+          "พฤษภาคม",
+          "มิถุนายน",
+          "กรกฎาคม",
+          "สิงหาคม",
+          "กันยายน",
+          "ตุลาคม",
+          "พฤศจิกายน",
+          "ธันวาคม",
+        ];
+
+        function formatBirthDisplay(b) {
+          if (!b) return "—";
+          if (b.birthDate) {
+            var parts = String(b.birthDate).split("-");
+            if (parts.length === 3) {
+              var y = parseInt(parts[0], 10);
+              var m = parseInt(parts[1], 10);
+              var d = parseInt(parts[2], 10);
+              var monthLabel = !isNaN(m) && m >= 1 && m <= 12 ? BIRTH_MONTH_TH[m] : parts[1];
+              var line = d + " " + monthLabel + " " + y;
+              if (b.calculatedAge != null && !isNaN(Number(b.calculatedAge))) {
+                line += " (อายุ " + b.calculatedAge + " ปี)";
+              }
+              if (b.parentalConsent) line += " · ยืนยันผู้ปกครองแล้ว";
+              return line;
+            }
+          }
+          var m = b.birthMonth != null ? parseInt(b.birthMonth, 10) : NaN;
+          var y = b.birthYear != null ? parseInt(b.birthYear, 10) : NaN;
+          if (isNaN(m) && isNaN(y)) return "—";
+          var monthLabel = !isNaN(m) && m >= 1 && m <= 12 ? BIRTH_MONTH_TH[m] : "—";
+          var yearLabel = !isNaN(y) ? String(y) : "—";
+          if (monthLabel === "—" && yearLabel === "—") return "—";
+          if (monthLabel === "—") return yearLabel;
+          if (yearLabel === "—") return monthLabel;
+          return monthLabel + " " + yearLabel;
         }
 
         /** แสดงวัน–เวลานัดบนการ์ด (ภาษาไทย) */
@@ -1735,6 +1785,7 @@
           if (idx === -1) return;
           applyRevenueFieldsToBooking(all[idx]);
           tryAutoAdvanceDepositStep(all[idx]);
+          touchAuditFields(all[idx]);
           try {
             saveBookings(all);
           } catch (err) {
@@ -1925,6 +1976,43 @@
           if (!row) return;
           row.lastEditedBy = getAuditEditorLabel();
           row.lastEditedAt = new Date().toISOString();
+          row._synced = false;
+        }
+
+        function isBookingSynced(b) {
+          return !!(b && b._synced === true);
+        }
+
+        function syncBadgeClass(synced) {
+          return synced
+            ? "inline-flex items-center gap-1 rounded-full border border-emerald-200/90 bg-emerald-50/95 px-1.5 py-0.5 text-[8px] font-medium leading-none text-emerald-800"
+            : "inline-flex items-center gap-1 rounded-full border border-amber-200/90 bg-amber-50/95 px-1.5 py-0.5 text-[8px] font-medium leading-none text-amber-950";
+        }
+
+        function syncBadgeLabel(synced) {
+          return synced ? "🟢 ซิงค์แล้ว" : "🟡 ยังไม่ได้ซิงค์";
+        }
+
+        function updateCardSyncBadge(card, b) {
+          if (!card || !b) return;
+          var badge = card.querySelector("[data-sync-badge]");
+          if (!badge) return;
+          var synced = isBookingSynced(b);
+          badge.className = syncBadgeClass(synced);
+          badge.textContent = syncBadgeLabel(synced);
+          card.setAttribute("data-synced", synced ? "true" : "false");
+        }
+
+        function refreshAllCardSyncBadges() {
+          var all = loadBookings();
+          document.querySelectorAll("article[data-booking-id]").forEach(function (card) {
+            var id = card.getAttribute("data-booking-id");
+            if (!id) return;
+            var b = all.find(function (x) {
+              return x && String(x.id) === String(id);
+            });
+            if (b) updateCardSyncBadge(card, b);
+          });
         }
 
         function formatAuditDisplayLine(b) {
@@ -2016,6 +2104,7 @@
           if (!b) return;
           if (modalFullName) modalFullName.textContent = b.fullName || "—";
           if (modalEditFullName) modalEditFullName.value = b.fullName || "";
+          if (modalBirth) modalBirth.textContent = formatBirthDisplay(b);
           if (modalSize) {
             modalSize.textContent =
               (b.widthCm != null ? b.widthCm : "—") + " × " + (b.heightCm != null ? b.heightCm : "—") + " cm";
@@ -2360,6 +2449,7 @@
         }
 
         function renderCard(b) {
+          var synced = isBookingSynced(b);
           var card = el(
             "article",
             "relative cursor-pointer rounded-lg border border-neutral-200 bg-neutral-50/50 py-2 pl-2 " +
@@ -2368,6 +2458,8 @@
           );
           card.setAttribute("role", "button");
           card.setAttribute("tabindex", "0");
+          card.setAttribute("data-booking-id", b.id != null ? String(b.id) : "");
+          card.setAttribute("data-synced", synced ? "true" : "false");
           card.setAttribute("aria-label", "เปิดรายละเอียด " + (b.fullName || "คำขอ"));
 
           var sizeLine =
@@ -2402,6 +2494,51 @@
             )
           );
           card.appendChild(head);
+
+          var syncRow = el("div", "pointer-events-auto mb-1 flex items-center justify-between gap-1");
+          var syncBadge = el("span", syncBadgeClass(synced), syncBadgeLabel(synced));
+          syncBadge.setAttribute("data-sync-badge", "");
+          syncRow.appendChild(syncBadge);
+
+          var syncBtn = document.createElement("button");
+          syncBtn.type = "button";
+          syncBtn.className =
+            "booking-sync-btn flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-neutral-200/80 bg-white/95 text-neutral-500 shadow-sm transition hover:border-neutral-300 hover:bg-white hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50";
+          syncBtn.setAttribute("data-booking-id", b.id != null ? String(b.id) : "");
+          syncBtn.setAttribute("aria-label", "ซิงค์รายการนี้ขึ้น Sheets");
+          syncBtn.title = "ซิงค์รายการนี้";
+          syncBtn.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>';
+          syncBtn.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+            if (typeof JarbtattooSheetsStorage === "undefined" || !JarbtattooSheetsStorage.saveOne) {
+              showValidationModal("ยังไม่ได้ตั้งค่า Google Sheets — ไม่สามารถซิงค์ได้");
+              return;
+            }
+            syncBtn.disabled = true;
+            syncBtn.classList.add("animate-pulse");
+            JarbtattooSheetsStorage.saveOne(b.id)
+              .then(function () {
+                var fresh = loadBookings().find(function (x) {
+                  return x && String(x.id) === String(b.id);
+                });
+                updateCardSyncBadge(card, fresh || { _synced: true });
+              })
+              .catch(function (err) {
+                var msg =
+                  err && err.message
+                    ? String(err.message)
+                    : "ซิงค์ไม่สำเร็จ — ลองอีกครั้งหรือตรวจการเชื่อมต่อ Sheets";
+                showValidationModal(msg);
+              })
+              .finally(function () {
+                syncBtn.disabled = false;
+                syncBtn.classList.remove("animate-pulse");
+              });
+          });
+          syncRow.appendChild(syncBtn);
+          card.appendChild(syncRow);
 
           var slaCard = getDesignSlaBadgeForCard(b);
           if (slaCard) {
@@ -2753,6 +2890,7 @@
               }
             }
             row.status = next;
+            row._synced = false;
             saveBookings(all);
             renderBoard();
           });
@@ -2768,6 +2906,7 @@
             if (e.target.closest && e.target.closest(".status-select")) return;
             if (e.target.closest && e.target.closest(".card-expand-toggle")) return;
             if (e.target.closest && e.target.closest(".booking-delete-btn")) return;
+            if (e.target.closest && e.target.closest(".booking-sync-btn")) return;
             openDetailModal(b);
           });
           card.addEventListener("keydown", function (e) {
@@ -2775,6 +2914,7 @@
               if (e.target === sel) return;
               if (e.target.closest && e.target.closest(".card-expand-toggle")) return;
               if (e.target.closest && e.target.closest(".booking-delete-btn")) return;
+              if (e.target.closest && e.target.closest(".booking-sync-btn")) return;
               cardActivate(e);
             }
           });
@@ -2855,6 +2995,7 @@
               }
             }
             row.status = next;
+            row._synced = false;
             try {
               saveBookings(all);
             } catch (err) {
@@ -2902,6 +3043,7 @@
                 }
                 applyRevenueFieldsToBooking(all[idx]);
                 tryAutoAdvanceDepositStep(all[idx]);
+                touchAuditFields(all[idx]);
                 try {
                   saveBookings(all);
                 } catch (err) {
@@ -2942,6 +3084,7 @@
             if (idx === -1) return;
             delete all[idx].depositSlipImage;
             applyRevenueFieldsToBooking(all[idx]);
+            touchAuditFields(all[idx]);
             try {
               saveBookings(all);
             } catch (err) {
@@ -3728,6 +3871,21 @@
 
         window.addEventListener("storage", function (e) {
           if (e.key === STORAGE_KEY || e.key === AVAILABILITY_STORAGE_KEY) renderBoard();
+        });
+
+        document.addEventListener("jarbtattoo-booking-synced", function (e) {
+          var id = e.detail && e.detail.bookingId;
+          if (!id) return;
+          var card = document.querySelector('article[data-booking-id="' + String(id) + '"]');
+          if (!card) return;
+          var b = loadBookings().find(function (x) {
+            return x && String(x.id) === String(id);
+          });
+          updateCardSyncBadge(card, b || { _synced: true });
+        });
+
+        document.addEventListener("jarbtattoo-sheets-bookings-synced", function () {
+          refreshAllCardSyncBadges();
         });
 
         async function jarbtattooSheetsBoot() {

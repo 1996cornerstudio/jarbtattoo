@@ -307,6 +307,9 @@
     }
     return postJson({ action: "save", key: key, payload: payload }).then(function (data) {
       if (!data.ok) throw new Error(data.error || "save failed");
+      if (key === STORE_KEYS.BOOKINGS && data.bookings) {
+        applyProcessedBookingsToLocal(data.bookings);
+      }
       return data;
     });
   }
@@ -322,6 +325,74 @@
 
   function saveBookings(list) {
     return save(STORE_KEYS.BOOKINGS, Array.isArray(list) ? list : []);
+  }
+
+  /**
+   * ส่งรายการจองทั้งก้อนขึ้น Sheets แล้วตั้ง _synced ของรายการนั้นเป็น true
+   * @param {string|number} bookingId
+   * @returns {Promise<{ ok: true, bookingId: string, booking: object }>}
+   */
+  function saveOne(bookingId) {
+    var id = bookingId != null ? String(bookingId) : "";
+    if (!id) return Promise.reject(new Error("ต้องระบุ bookingId"));
+    if (!getConfiguredUrl()) {
+      return Promise.resolve({ ok: true, skipped: true, bookingId: id });
+    }
+
+    var list;
+    try {
+      var raw = global.localStorage.getItem(STORE_KEYS.BOOKINGS);
+      list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) list = [];
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
+    var idx = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && String(list[i].id) === id) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx === -1) return Promise.reject(new Error("ไม่พบรายการจอง"));
+
+    beginRemoteSaveIndicator();
+    return save(STORE_KEYS.BOOKINGS, list)
+      .then(function (data) {
+        if (data && Array.isArray(data.bookings)) {
+          list = data.bookings;
+          idx = -1;
+          for (var j = 0; j < list.length; j++) {
+            if (list[j] && String(list[j].id) === id) {
+              idx = j;
+              break;
+            }
+          }
+        }
+        if (idx === -1) {
+          throw new Error("ไม่พบรายการจองหลังซิงค์");
+        }
+        list[idx]._synced = true;
+        try {
+          global.localStorage.setItem(STORE_KEYS.BOOKINGS, JSON.stringify(markBookingsListSynced(list)));
+        } catch (e) {
+          console.warn("saveOne: อัปเดต _synced ใน local ไม่สำเร็จ", e);
+        }
+        endRemoteSaveIndicator(true);
+        if (typeof document !== "undefined") {
+          document.dispatchEvent(
+            new CustomEvent("jarbtattoo-booking-synced", {
+              detail: { bookingId: id, synced: true },
+            })
+          );
+        }
+        return { ok: true, bookingId: id, booking: list[idx] };
+      })
+      .catch(function (err) {
+        endRemoteSaveIndicator(false);
+        return Promise.reject(err);
+      });
   }
 
   function loadAvailability() {
@@ -370,13 +441,59 @@
    * ผูกข้อมูลจาก Sheets ลง localStorage ชั่วคราว เพื่อให้โค้ดเดิมที่อ่าน localStorage ยังทำงาน
    * (เหมาะกับช่วงย้ายระบบ — โหลดครั้งเดียวหลัง login แล้วค่อยรีแฟกเตอร์เป็น async ทีหลัง)
    */
+  function markBookingsListSynced(list) {
+    if (!Array.isArray(list)) return list;
+    return list.map(function (b) {
+      if (!b || typeof b !== "object") return b;
+      var copy = Object.assign({}, b);
+      copy._synced = true;
+      return copy;
+    });
+  }
+
+  function markLocalBookingsSynced() {
+    try {
+      var raw = global.localStorage.getItem(STORE_KEYS.BOOKINGS);
+      var list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) return;
+      var next = markBookingsListSynced(list);
+      global.localStorage.setItem(STORE_KEYS.BOOKINGS, JSON.stringify(next));
+      if (typeof document !== "undefined") {
+        document.dispatchEvent(new CustomEvent("jarbtattoo-sheets-bookings-synced"));
+      }
+    } catch (e) {
+      console.warn("markLocalBookingsSynced", e);
+    }
+  }
+
+  /**
+   * หลัง GAS แปลง data URL → ลิงก์ Drive แล้ว — เขียนกลับ localStorage
+   * (กัน sync รอบถัดไปส่ง base64 ซ้ำ → สร้างไฟล์ใน Drive เพิ่มเรื่อยๆ)
+   */
+  function applyProcessedBookingsToLocal(processedList) {
+    if (!Array.isArray(processedList)) return;
+    try {
+      var next = markBookingsListSynced(processedList);
+      global.localStorage.setItem(STORE_KEYS.BOOKINGS, JSON.stringify(next));
+      if (typeof document !== "undefined") {
+        document.dispatchEvent(new CustomEvent("jarbtattoo-sheets-bookings-synced"));
+      }
+    } catch (e) {
+      console.warn("applyProcessedBookingsToLocal", e);
+    }
+  }
+
   function hydrateLocalStorageFromStores(stores) {
     if (!stores || typeof stores !== "object") return;
     Object.keys(STORE_KEYS).forEach(function (k) {
       var key = STORE_KEYS[k];
       if (stores[key] !== undefined && stores[key] !== null) {
+        var payload = stores[key];
+        if (key === STORE_KEYS.BOOKINGS && Array.isArray(payload)) {
+          payload = markBookingsListSynced(payload);
+        }
         try {
-          global.localStorage.setItem(key, JSON.stringify(stores[key]));
+          global.localStorage.setItem(key, JSON.stringify(payload));
         } catch (e) {
           console.warn("hydrate skip " + key, e);
         }
@@ -500,7 +617,10 @@
     if (!getConfiguredUrl()) return;
     beginRemoteSaveIndicator();
     save(key, value)
-      .then(function () {
+      .then(function (data) {
+        if (key === STORE_KEYS.BOOKINGS && !(data && data.bookings)) {
+          markLocalBookingsSynced();
+        }
         endRemoteSaveIndicator(true);
       })
       .catch(function (err) {
@@ -571,6 +691,7 @@
     save: save,
     loadBookings: loadBookings,
     saveBookings: saveBookings,
+    saveOne: saveOne,
     loadAvailability: loadAvailability,
     saveAvailability: saveAvailability,
     loadContentBundle: loadContentBundle,

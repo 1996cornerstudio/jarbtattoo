@@ -10,6 +10,7 @@
         "https://script.google.com/macros/s/AKfycbzi5BMtlvv75d_DhBc3mTv0xdtgKOrzSn3bXS67O5KweWoSaMNlZsmtV_hvXNMF-lvUKw/exec";
     </script>
     <script src="jarbtattoo-sheets-storage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -120,37 +121,135 @@
                 class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
               />
             </div>
-            <div>
-              <label for="phone" class="mb-2 block text-sm font-medium text-neutral-700">
-                <span data-i18n="labelPhone">เบอร์โทรศัพท์</span>
-                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                autocomplete="tel"
-                inputmode="tel"
-                data-i18n-placeholder="placeholderPhone"
-                placeholder="08xxxxxxxx"
-                required
-                class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
-              />
-            </div>
-            <div>
-              <label for="artist" class="mb-2 block text-sm font-medium text-neutral-700">
-                <span data-i18n="labelArtist">ศิลปินที่ต้องการ (Artist)</span>
-                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
-              </label>
-              <select
-                id="artist"
-                name="artist"
-                required
-                class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
-                style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+            <div class="space-y-3">
+              <p class="text-xs font-medium uppercase tracking-wide text-neutral-500" data-i18n="labelBirthDate">
+                วันเดือนปีเกิด
+              </p>
+              <div class="grid grid-cols-3 gap-3 sm:gap-4">
+              <div>
+                <label for="birth-day" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelBirthDay">วัน</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <select
+                  id="birth-day"
+                  name="birthDay"
+                  required
+                  class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-3 py-3 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900 sm:px-4"
+                  style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.1rem; padding-right: 2rem;"
+                >
+                  <option value="" disabled selected data-i18n="birthDayPlaceholder">— วัน —</option>
+                </select>
+              </div>
+              <div>
+                <label for="birth-month" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelBirthMonth">เดือน</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <select
+                  id="birth-month"
+                  name="birthMonth"
+                  required
+                  class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+                >
+                  <option value="" disabled selected data-i18n="birthMonthPlaceholder">— เดือน —</option>
+                </select>
+              </div>
+              <div>
+                <label for="birth-year" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelBirthYear">ปี</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <select
+                  id="birth-year"
+                  name="birthYear"
+                  required
+                  class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+                >
+                  <option value="" disabled selected data-i18n="birthYearPlaceholder">— ปี —</option>
+                </select>
+              </div>
+              </div>
+              <p
+                id="birth-age-info"
+                class="hidden text-sm font-medium text-neutral-700"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <div
+                id="birth-under18-alert"
+                class="hidden rounded-xl border border-red-300 bg-red-50 px-4 py-3"
+                role="alert"
               >
-                <option value="" disabled selected>—</option>
-              </select>
+                <p class="text-sm font-bold leading-relaxed text-red-900" data-i18n="birthUnder18Warning">
+                  ขออภัย ทางร้านไม่สามารถให้บริการผู้ที่มีอายุต่ำกว่า 18 ปีได้ตามนโยบายความปลอดภัยและกฎหมาย
+                </p>
+              </div>
+              <div
+                id="parental-consent-wrap"
+                class="hidden rounded-xl border border-amber-200 bg-amber-50/80 p-4"
+              >
+                <label class="flex cursor-pointer gap-3">
+                  <input
+                    id="parental-consent"
+                    name="parentalConsent"
+                    type="checkbox"
+                    class="mt-0.5 h-4 w-4 shrink-0 rounded border-amber-400 text-neutral-900 focus:ring-neutral-900"
+                  />
+                  <span
+                    class="text-sm font-medium leading-relaxed text-amber-950"
+                    data-i18n="parentalConsentLabel"
+                    >ฉันยืนยันว่าได้รับความยินยอมจากผู้ปกครองให้เข้ารับบริการสักแล้ว</span
+                  >
+                </label>
+              </div>
+              <div
+                id="birth-invalid-alert"
+                class="hidden rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-700"
+                role="alert"
+                data-i18n="birthInvalidDate"
+              >
+                วันเดือนปีเกิดไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label for="contact-method" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelContactReturn">ช่องทางติดต่อกลับ</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <select
+                  id="contact-method"
+                  name="contactMethod"
+                  required
+                  class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+                >
+                  <option value="" disabled selected data-i18n="contactMethodPlaceholder">
+                    — เลือกช่องทาง —
+                  </option>
+                  <option value="phone" data-i18n="contactOptPhone">เบอร์โทรศัพท์</option>
+                  <option value="email" data-i18n="contactOptEmail">E-Mail</option>
+                  <option value="line" data-i18n="contactOptLine">Line</option>
+                  <option value="instagram" data-i18n="contactOptInstagram">Instagram</option>
+                  <option value="facebook" data-i18n="contactOptFacebook">Facebook</option>
+                </select>
+              </div>
+              <div id="contact-value-wrap" class="hidden">
+                <label for="contact-value" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span id="contact-value-label" data-i18n="labelContactValue">ข้อมูลติดต่อ</span>
+                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                </label>
+                <input
+                  id="contact-value"
+                  name="contactValue"
+                  type="text"
+                  required
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -170,6 +269,21 @@
             อ้างอิงและรายละเอียดงาน
           </h2>
           <div class="space-y-5">
+            <div>
+              <label for="details" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelDetails">อธิบายความต้องการ</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <textarea
+                id="details"
+                name="details"
+                rows="4"
+                required
+                data-i18n-placeholder="placeholderDetails"
+                placeholder="สไตล์ที่ชอบ ธีม หรือข้อความที่อยากได้..."
+                class="w-full resize-y rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              ></textarea>
+            </div>
             <div>
               <p class="mb-2 block text-sm font-medium text-neutral-700">
                 <span data-i18n="labelInkStyle">สีงาน</span>
@@ -199,41 +313,65 @@
               </div>
             </div>
             <div>
-              <label for="details" class="mb-2 block text-sm font-medium text-neutral-700">
-                <span data-i18n="labelDetails">อธิบายความต้องการ</span>
-                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
-              </label>
-              <textarea
-                id="details"
-                name="details"
-                rows="4"
-                required
-                data-i18n-placeholder="placeholderDetails"
-                placeholder="สไตล์ที่ชอบ ธีม หรือข้อความที่อยากได้..."
-                class="w-full resize-y rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
-              ></textarea>
-            </div>
-            <div>
               <label for="reference" class="mb-2 block text-sm font-medium text-neutral-700">
                 <span data-i18n="labelRef">ภาพ Reference</span>
-                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                <span class="font-normal text-neutral-400" data-i18n="optionalMark">(ไม่บังคับ)</span>
               </label>
               <input
                 id="reference"
                 name="reference"
                 type="file"
-                accept="image/*"
-                required
+                accept="image/*,.heic,.heif,image/heic,image/heif"
                 class="block w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
               />
               <div id="preview-ref-wrap" class="mt-3 hidden">
-                <img
-                  id="preview-ref-img"
-                  alt=""
-                  data-i18n-alt="altRefPreview"
-                  class="max-h-48 w-full rounded-lg border border-neutral-200 object-contain bg-neutral-100"
-                />
+                <p
+                  id="preview-ref-status"
+                  class="mb-2 hidden text-xs font-medium text-neutral-500"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+                <div
+                  class="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"
+                >
+                  <div
+                    id="preview-ref-loading"
+                    class="absolute inset-0 z-10 hidden flex flex-col items-center justify-center gap-2 bg-neutral-100/90"
+                    aria-hidden="true"
+                  >
+                    <div
+                      class="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-800"
+                    ></div>
+                    <span
+                      data-i18n="previewProcessing"
+                      class="text-xs font-medium text-neutral-600"
+                      >กำลังประมวลผลภาพ…</span
+                    >
+                  </div>
+                  <img
+                    id="preview-ref-img"
+                    alt=""
+                    data-i18n-alt="altRefPreview"
+                    decoding="async"
+                    class="mx-auto block max-h-64 w-full object-contain opacity-0 transition-opacity duration-200"
+                  />
+                </div>
               </div>
+            </div>
+            <div>
+              <label for="artist" class="mb-2 block text-sm font-medium text-neutral-700">
+                <span data-i18n="labelArtist">ศิลปินที่ต้องการ (Artist)</span>
+                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+              </label>
+              <select
+                id="artist"
+                name="artist"
+                required
+                class="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23171717%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+              >
+                <option value="" disabled selected>—</option>
+              </select>
             </div>
           </div>
         </section>
@@ -253,24 +391,7 @@
             ขนาดและตำแหน่งรอยสัก
           </h2>
           <div class="space-y-5">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="width-cm" class="mb-2 block text-sm font-medium text-neutral-700">
-                  <span data-i18n="labelWidth">กว้าง (ซม.)</span>
-                  <span class="text-neutral-400" data-i18n="requiredMark">*</span>
-                </label>
-                <input
-                  id="width-cm"
-                  name="widthCm"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  required
-                  data-i18n-placeholder="placeholderWidth"
-                  placeholder="0"
-                  class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
-                />
-              </div>
+            <div class="space-y-4">
               <div>
                 <label for="height-cm" class="mb-2 block text-sm font-medium text-neutral-700">
                   <span data-i18n="labelHeight">ยาว (ซม.)</span>
@@ -284,6 +405,22 @@
                   step="0.1"
                   required
                   data-i18n-placeholder="placeholderHeight"
+                  placeholder="0"
+                  class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+              <div id="width-cm-wrap" class="hidden">
+                <label for="width-cm" class="mb-2 block text-sm font-medium text-neutral-700">
+                  <span data-i18n="labelWidth">กว้าง (ซม.)</span>
+                  <span class="text-neutral-400 font-normal" data-i18n="optionalMark">(ไม่บังคับ)</span>
+                </label>
+                <input
+                  id="width-cm"
+                  name="widthCm"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  data-i18n-placeholder="placeholderWidth"
                   placeholder="0"
                   class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
                 />
@@ -324,29 +461,82 @@
             <div>
               <label for="placement-photo" class="mb-2 block text-sm font-medium text-neutral-700">
                 <span data-i18n="labelPlacementPhoto">อัปโหลดภาพตำแหน่งรอยสัก</span>
-                <span class="text-neutral-400" data-i18n="requiredMark">*</span>
+                <span class="text-neutral-400 font-normal" data-i18n="optionalMark">(ไม่บังคับ)</span>
               </label>
               <p data-i18n="hintPlacementPhoto" class="mb-2 text-xs leading-relaxed text-neutral-500">
-                ถ่ายหรือวงตำแหน่งบนร่างกายที่ต้องการสัก เพื่อให้ช่างเห็นพื้นที่ชัดเจน
+                ถ่ายหรือวงตำแหน่งบนร่างกายที่ต้องการสัก เพื่อให้ช่างเห็นพื้นที่ชัดเจน (ไม่บังคับ)
               </p>
               <input
                 id="placement-photo"
                 name="placementPhoto"
                 type="file"
-                accept="image/*"
-                required
+                accept="image/*,.heic,.heif,image/heic,image/heif"
                 class="block w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-700 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:border-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
               />
               <div id="preview-place-wrap" class="mt-3 hidden">
-                <img
-                  id="preview-place-img"
-                  alt=""
-                  data-i18n-alt="altPlacePreview"
-                  class="max-h-48 w-full rounded-lg border border-neutral-200 object-contain bg-neutral-100"
-                />
+                <p
+                  id="preview-place-status"
+                  class="mb-2 hidden text-xs font-medium text-neutral-500"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+                <div
+                  class="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"
+                >
+                  <div
+                    id="preview-place-loading"
+                    class="absolute inset-0 z-10 hidden flex flex-col items-center justify-center gap-2 bg-neutral-100/90"
+                    aria-hidden="true"
+                  >
+                    <div
+                      class="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-800"
+                    ></div>
+                    <span
+                      data-i18n="previewProcessing"
+                      class="text-xs font-medium text-neutral-600"
+                      >กำลังประมวลผลภาพ…</span
+                    >
+                  </div>
+                  <img
+                    id="preview-place-img"
+                    alt=""
+                    data-i18n-alt="altPlacePreview"
+                    decoding="async"
+                    class="mx-auto block max-h-64 w-full object-contain opacity-0 transition-opacity duration-200"
+                  />
+                </div>
               </div>
             </div>
           </div>
+        </section>
+
+        <section
+          class="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-6 sm:p-7"
+          aria-labelledby="consent-heading"
+        >
+          <h2
+            id="consent-heading"
+            data-i18n="consentTitle"
+            class="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-800"
+          >
+            ความยินยอมในการใช้ข้อมูล
+          </h2>
+          <label
+            class="flex cursor-pointer gap-3 rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300 has-[:checked]:border-neutral-900 has-[:checked]:ring-1 has-[:checked]:ring-neutral-900"
+          >
+            <input
+              id="consent"
+              name="consent"
+              type="checkbox"
+              required
+              class="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+            />
+            <span
+              class="text-sm leading-relaxed text-neutral-700"
+              data-i18n="consentText"
+              >ฉันยินยอมให้จัดเก็บและใช้ภาพ/ข้อมูลเพื่อการบริหารจัดการภายใน ประชาสัมพันธ์ หรือกิจกรรมส่งเสริมการขายอื่นๆ ที่เกี่ยวข้องกับ บริษัท จ๊าบแททู จำกัด โดยรับทราบว่าพนักงานและบุคคลที่เกี่ยวข้องสามารถเข้าถึงข้อมูลนี้ได้</span
+            >
+          </label>
         </section>
 
         <button
@@ -498,10 +688,36 @@
             intro: "กรอกข้อมูลด้านล่างเพื่อให้ช่างประเมินงานและนัดคิวได้แม่นยำขึ้น",
             step1Title: "ชื่อและการติดต่อ",
             labelName: "ชื่อ",
-            labelPhone: "เบอร์โทรศัพท์",
+            labelBirthDate: "วันเดือนปีเกิด",
+            labelBirthDay: "วัน",
+            labelBirthMonth: "เดือน",
+            labelBirthYear: "ปี",
+            birthDayPlaceholder: "— วัน —",
+            birthMonthPlaceholder: "— เดือน —",
+            birthYearPlaceholder: "— ปี —",
+            birthAgeInfo: "อายุ {age} ปี",
+            birthUnder18Warning:
+              "ขออภัย ทางร้านไม่สามารถให้บริการผู้ที่มีอายุต่ำกว่า 18 ปีได้ตามนโยบายความปลอดภัยและกฎหมาย",
+            parentalConsentLabel: "ฉันยืนยันว่าได้รับความยินยอมจากผู้ปกครองให้เข้ารับบริการสักแล้ว",
+            birthInvalidDate: "วันเดือนปีเกิดไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+            formErrorParentalConsent: "กรุณายืนยันความยินยอมจากผู้ปกครองก่อนส่งข้อมูล",
+            labelContactReturn: "ช่องทางติดต่อกลับ",
+            labelContactValue: "ข้อมูลติดต่อ",
+            contactMethodPlaceholder: "— เลือกช่องทาง —",
+            contactOptPhone: "เบอร์โทรศัพท์",
+            contactOptEmail: "E-Mail",
+            contactOptLine: "Line",
+            contactOptInstagram: "Instagram",
+            contactOptFacebook: "Facebook",
+            placeholderContactPhone: "ระบุเบอร์โทรศัพท์",
+            placeholderContactEmail: "ระบุอีเมล",
+            placeholderContactLine: "ระบุไอดีไลน์",
+            placeholderContactInstagram: "ระบุชื่อ Instagram",
+            placeholderContactFacebook: "ระบุชื่อ Facebook",
+            formErrorContact: "กรุณาเลือกช่องทางติดต่อและกรอกข้อมูลให้ถูกต้อง",
+            formErrorContactEmail: "กรุณาระบุอีเมลให้ถูกรูปแบบ",
             requiredMark: "*",
             placeholderName: "ชื่อ–นามสกุล",
-            placeholderPhone: "08xxxxxxxx",
             labelArtist: "ศิลปินที่ต้องการ (Artist)",
             artistPlaceholder: "— เลือกศิลปิน —",
             step2Title: "อ้างอิงและรายละเอียดงาน",
@@ -509,6 +725,19 @@
             labelDetails: "อธิบายความต้องการ",
             placeholderDetails: "สไตล์ที่ชอบ ธีม หรือข้อความที่อยากได้...",
             altRefPreview: "ตัวอย่างภาพอ้างอิง",
+            previewProcessing: "กำลังประมวลผลภาพ…",
+            imageStatusPreparing: "กำลังเตรียมไฟล์ภาพ…",
+            imageStatusHeic: "กำลังแปลงไฟล์จาก iPhone…",
+            imageStatusCompressing: "กำลังบีบอัดภาพ…",
+            imageStatusFallback: "กำลังย่อภาพแบบง่าย (สำรอง)…",
+            imageStatusSuccess: "พร้อมส่ง (บีบอัดสำเร็จ 100%)",
+            previewReady: "พร้อมส่ง (บีบอัดสำเร็จ 100%)",
+            imageErrorHeic: "ไฟล์ iPhone นี้แปลงไม่ได้ — ลองถ่ายใหม่เป็น JPG หรือส่งจากเครื่องอื่น",
+            imageErrorMemory: "ภาพใหญ่เกินไปสำหรับแรมเครื่องคุณ — ลองรูปเล็กลงหรือปิดแท็บอื่น",
+            imageErrorTooLarge: "ไฟล์ภาพใหญ่เกินไป — ลองลดขนาดก่อนอัปโหลด",
+            imageErrorLibrary: "ระบบแปลงรูปยังไม่พร้อม — รอสักครู่แล้วลองใหม่ หรือรีเฟรชหน้า",
+            imageErrorWaitCompress: "กำลังบีบอัดภาพ — รอจนแสดง «พร้อมส่ง» ก่อนกดส่งข้อมูล",
+            imageErrorGeneric: "ไม่สามารถประมวลผลภาพได้ กรุณาลองใหม่",
             labelInkStyle: "สีงาน (เลือก 1 อย่าง)",
             inkColorOpt: "สี",
             inkBwOpt: "ขาวดำ",
@@ -524,8 +753,9 @@
             labelPlacementOther: "ระบุตำแหน่ง",
             placeholderPlacementOther: "เช่น ข้อมือ ข้างคอ",
             labelPlacementPhoto: "อัปโหลดภาพตำแหน่งรอยสัก",
+            optionalMark: "(ไม่บังคับ)",
             hintPlacementPhoto:
-              "ถ่ายหรือวงตำแหน่งบนร่างกายที่ต้องการสัก เพื่อให้ช่างเห็นพื้นที่ชัดเจน",
+              "ถ่ายหรือวงตำแหน่งบนร่างกายที่ต้องการสัก เพื่อให้ช่างเห็นพื้นที่ชัดเจน (ไม่บังคับ)",
             altPlacePreview: "ตัวอย่างภาพตำแหน่ง",
             submitBtn: "บันทึกข้อมูล",
             footer: "Jarbtattoo.bkk · ฟอร์มจำลองสำหรับการจองคิวปรึกษา",
@@ -535,8 +765,16 @@
             formError: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน",
             formErrorInk: "กรุณาเลือกว่าต้องการสีหรือขาวดำ (เลือกได้อย่างใดอย่างหนึ่ง)",
             formErrorOther: "กรุณาระบุตำแหน่งเมื่อเลือก “ตำแหน่งอื่น”",
+            formErrorConsent: "กรุณาติ๊กยอมรับความยินยอมก่อนส่งข้อมูล",
+            consentTitle: "ความยินยอมในการใช้ข้อมูล",
+            consentText:
+              "ฉันยินยอมให้จัดเก็บและใช้ภาพ/ข้อมูลเพื่อการบริหารจัดการภายใน ประชาสัมพันธ์ หรือกิจกรรมส่งเสริมการขายอื่นๆ ที่เกี่ยวข้องกับ บริษัท จ๊าบแททู จำกัด โดยรับทราบว่าพนักงานและบุคคลที่เกี่ยวข้องสามารถเข้าถึงข้อมูลนี้ได้",
             storageQuota:
-              "บันทึกไม่สำเร็จ — ภาพมีขนาดใหญ่เกินที่เบราว์เซอร์รองรับ ลองใช้ไฟล์เล็กลง",
+              "บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลในเบราว์เซอร์เต็ม (มักมีข้อมูลเก่าค้าง) ลองกด Refresh (F5) หรือล้างแคชเว็บไซต์",
+            storageQuotaRecovery:
+              "บันทึกข้อมูลขึ้นระบบคลาวด์แล้ว แต่แคชในเครื่องเต็ม — กรุณากด Refresh (F5) เพื่อล้างแคช แล้วใช้งานต่อได้ตามปกติ",
+            modalBodyRecovery:
+              "ส่งข้อมูลให้ช่างประเมินแล้ว (บันทึกผ่านระบบคลาวด์) กรุณากด Refresh (F5) หนึ่งครั้งเพื่อล้างแคชในเบราว์เซอร์",
             saveReadError: "ไม่สามารถอ่านไฟล์ภาพได้ กรุณาลองใหม่",
             adminLink: "แดชบอร์ดช่าง",
           },
@@ -545,10 +783,37 @@
             intro: "Fill in the details below so the artist can assess your piece and schedule accurately.",
             step1Title: "Name & contact",
             labelName: "Full name",
-            labelPhone: "Phone number",
+            labelBirthDate: "Date of birth",
+            labelBirthDay: "Day",
+            labelBirthMonth: "Month",
+            labelBirthYear: "Year",
+            birthDayPlaceholder: "— Day —",
+            birthMonthPlaceholder: "— Month —",
+            birthYearPlaceholder: "— Year —",
+            birthAgeInfo: "Age {age} years",
+            birthUnder18Warning:
+              "Sorry — we cannot provide services to anyone under 18 years of age due to safety and legal policy.",
+            parentalConsentLabel:
+              "I confirm that I have parental/guardian consent to receive tattoo services.",
+            birthInvalidDate: "Invalid date of birth. Please check and try again.",
+            formErrorParentalConsent: "Please confirm parental/guardian consent before submitting.",
+            labelContactReturn: "How we can reach you",
+            labelContactValue: "Contact details",
+            contactMethodPlaceholder: "— Select channel —",
+            contactOptPhone: "Phone",
+            contactOptEmail: "E-Mail",
+            contactOptLine: "Line",
+            contactOptInstagram: "Instagram",
+            contactOptFacebook: "Facebook",
+            placeholderContactPhone: "Enter phone number",
+            placeholderContactEmail: "Enter email address",
+            placeholderContactLine: "Enter Line ID",
+            placeholderContactInstagram: "Enter Instagram username",
+            placeholderContactFacebook: "Enter Facebook name",
+            formErrorContact: "Please select a contact channel and enter valid details.",
+            formErrorContactEmail: "Please enter a valid email address.",
             requiredMark: "*",
             placeholderName: "First and last name",
-            placeholderPhone: "+66 …",
             labelArtist: "Preferred artist",
             artistPlaceholder: "— Select artist —",
             step2Title: "Reference & brief",
@@ -556,6 +821,19 @@
             labelDetails: "Describe what you want",
             placeholderDetails: "Style, theme, lettering, or ideas…",
             altRefPreview: "Reference preview",
+            previewProcessing: "Processing image…",
+            imageStatusPreparing: "Preparing image file…",
+            imageStatusHeic: "Converting iPhone photo…",
+            imageStatusCompressing: "Compressing image…",
+            imageStatusFallback: "Simple resize (fallback)…",
+            imageStatusSuccess: "Ready to submit (100% compressed)",
+            previewReady: "Ready to submit (100% compressed)",
+            imageErrorHeic: "This iPhone file could not be converted — try JPG or another device",
+            imageErrorMemory: "Image is too large for your device memory — use a smaller file or close other tabs",
+            imageErrorTooLarge: "Image file is too large — resize before uploading",
+            imageErrorLibrary: "Image converter is not ready — wait and retry, or refresh the page",
+            imageErrorWaitCompress: "Still compressing — wait until «Ready to submit» before sending",
+            imageErrorGeneric: "Could not process this image — please try again",
             labelInkStyle: "Ink (pick one)",
             inkColorOpt: "Color",
             inkBwOpt: "Black & grey / B&W",
@@ -571,8 +849,9 @@
             labelPlacementOther: "Specify placement",
             placeholderPlacementOther: "e.g. wrist, side of neck",
             labelPlacementPhoto: "Photo of placement on body",
+            optionalMark: "(optional)",
             hintPlacementPhoto:
-              "Upload a photo marking the area on your body so the artist can see the space clearly.",
+              "Upload a photo marking the area on your body so the artist can see the space clearly. (optional)",
             altPlacePreview: "Placement preview",
             submitBtn: "Submit for review",
             footer: "Jarbtattoo.bkk · Demo booking form",
@@ -582,8 +861,16 @@
             formError: "Please complete all required fields.",
             formErrorInk: "Please choose color or black & grey / B&W (one only).",
             formErrorOther: "Please specify the placement when “Other placement” is selected.",
+            formErrorConsent: "Please accept the consent checkbox before submitting.",
+            consentTitle: "Data consent",
+            consentText:
+              "I consent to the storage and use of my images/data for internal administration, marketing, and other promotional activities related to Jab Tattoo Co., Ltd., and acknowledge that staff and related parties may access this information.",
             storageQuota:
-              "Could not save — images are too large for browser storage. Try smaller files.",
+              "Could not save — browser storage is full (often old cached data). Try Refresh (F5) or clear site data.",
+            storageQuotaRecovery:
+              "Saved to cloud, but local cache is full — please press Refresh (F5) once to clear the browser cache.",
+            modalBodyRecovery:
+              "Your booking was sent (saved via cloud). Please press Refresh (F5) once to clear your browser cache.",
             saveReadError: "Could not read image files. Please try again.",
             adminLink: "Artist dashboard",
           },
@@ -611,6 +898,241 @@
 
         function t(key) {
           return (I18N[lang] && I18N[lang][key]) || key;
+        }
+
+        var BIRTH_MONTH_OPTIONS = [
+          { value: 1, th: "มกราคม", en: "January" },
+          { value: 2, th: "กุมภาพันธ์", en: "February" },
+          { value: 3, th: "มีนาคม", en: "March" },
+          { value: 4, th: "เมษายน", en: "April" },
+          { value: 5, th: "พฤษภาคม", en: "May" },
+          { value: 6, th: "มิถุนายน", en: "June" },
+          { value: 7, th: "กรกฎาคม", en: "July" },
+          { value: 8, th: "สิงหาคม", en: "August" },
+          { value: 9, th: "กันยายน", en: "September" },
+          { value: 10, th: "ตุลาคม", en: "October" },
+          { value: 11, th: "พฤศจิกายน", en: "November" },
+          { value: 12, th: "ธันวาคม", en: "December" },
+        ];
+
+        var birthAgeState = {
+          age: null,
+          birthDateIso: null,
+          valid: false,
+          under18: false,
+          needsParental: false,
+        };
+
+        function pad2(n) {
+          return n < 10 ? "0" + n : String(n);
+        }
+
+        function parseBirthDateFromFields() {
+          var dayEl = document.getElementById("birth-day");
+          var monthEl = document.getElementById("birth-month");
+          var yearEl = document.getElementById("birth-year");
+          if (!dayEl || !monthEl || !yearEl) return null;
+          var d = parseInt(dayEl.value, 10);
+          var m = parseInt(monthEl.value, 10);
+          var y = parseInt(yearEl.value, 10);
+          if (!d || !m || !y) return null;
+          var date = new Date(y, m - 1, d);
+          if (
+            date.getFullYear() !== y ||
+            date.getMonth() !== m - 1 ||
+            date.getDate() !== d
+          ) {
+            return null;
+          }
+          if (date.getTime() > Date.now()) return null;
+          return date;
+        }
+
+        function calculateAgeFromBirthDate(birthDate) {
+          var today = new Date();
+          var age = today.getFullYear() - birthDate.getFullYear();
+          var md = today.getMonth() - birthDate.getMonth();
+          if (md < 0 || (md === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          return age;
+        }
+
+        function rebuildBirthDaySelect() {
+          var daySel = document.getElementById("birth-day");
+          var monthSel = document.getElementById("birth-month");
+          var yearSel = document.getElementById("birth-year");
+          if (!daySel) return;
+          var dict = I18N[lang];
+          var preserved = daySel.value;
+          var maxDay = 31;
+          if (monthSel && yearSel && monthSel.value && yearSel.value) {
+            var m = parseInt(monthSel.value, 10);
+            var y = parseInt(yearSel.value, 10);
+            if (m && y) maxDay = new Date(y, m, 0).getDate();
+          }
+          while (daySel.options.length > 1) daySel.remove(1);
+          for (var d = 1; d <= maxDay; d++) {
+            var opt = document.createElement("option");
+            opt.value = String(d);
+            opt.textContent = String(d);
+            daySel.appendChild(opt);
+          }
+          if (daySel.options[0]) daySel.options[0].textContent = dict.birthDayPlaceholder;
+          var found = false;
+          for (var i = 0; i < daySel.options.length; i++) {
+            if (daySel.options[i].value === preserved) {
+              daySel.selectedIndex = i;
+              found = true;
+              break;
+            }
+          }
+          if (!found) daySel.selectedIndex = 0;
+        }
+
+        function refreshSubmitButtonState() {
+          if (!submitBtn) return;
+          var blocked = birthAgeState.under18 || imageCompressionBlocksSubmit();
+          submitBtn.disabled = blocked;
+          submitBtn.classList.toggle("opacity-60", blocked);
+          submitBtn.classList.toggle("cursor-not-allowed", blocked);
+        }
+
+        function updateBirthAgeRules() {
+          var ageInfo = document.getElementById("birth-age-info");
+          var under18Alert = document.getElementById("birth-under18-alert");
+          var parentalWrap = document.getElementById("parental-consent-wrap");
+          var parentalCb = document.getElementById("parental-consent");
+          var invalidAlert = document.getElementById("birth-invalid-alert");
+
+          if (ageInfo) {
+            ageInfo.classList.add("hidden");
+            ageInfo.textContent = "";
+          }
+          if (under18Alert) under18Alert.classList.add("hidden");
+          if (parentalWrap) parentalWrap.classList.add("hidden");
+          if (invalidAlert) invalidAlert.classList.add("hidden");
+          if (parentalCb) {
+            parentalCb.checked = false;
+            parentalCb.required = false;
+          }
+
+          birthAgeState = {
+            age: null,
+            birthDateIso: null,
+            valid: false,
+            under18: false,
+            needsParental: false,
+          };
+
+          var dayEl = document.getElementById("birth-day");
+          var monthEl = document.getElementById("birth-month");
+          var yearEl = document.getElementById("birth-year");
+          var allBirthFilled =
+            dayEl &&
+            monthEl &&
+            yearEl &&
+            dayEl.value !== "" &&
+            monthEl.value !== "" &&
+            yearEl.value !== "";
+
+          var birthDate = parseBirthDateFromFields();
+          if (!birthDate) {
+            if (allBirthFilled && invalidAlert) invalidAlert.classList.remove("hidden");
+            refreshSubmitButtonState();
+            return;
+          }
+
+          var age = calculateAgeFromBirthDate(birthDate);
+          var y = birthDate.getFullYear();
+          var m = birthDate.getMonth() + 1;
+          var d = birthDate.getDate();
+          birthAgeState = {
+            age: age,
+            birthDateIso: y + "-" + pad2(m) + "-" + pad2(d),
+            valid: true,
+            under18: age < 18,
+            needsParental: age >= 18 && age < 20,
+          };
+
+          if (ageInfo) {
+            ageInfo.textContent = t("birthAgeInfo").replace("{age}", String(age));
+            ageInfo.classList.remove("hidden");
+          }
+
+          if (birthAgeState.under18) {
+            if (under18Alert) under18Alert.classList.remove("hidden");
+            refreshSubmitButtonState();
+            return;
+          }
+
+          if (birthAgeState.needsParental && parentalWrap && parentalCb) {
+            parentalWrap.classList.remove("hidden");
+            parentalCb.required = true;
+          }
+
+          refreshSubmitButtonState();
+        }
+
+        function rebuildBirthSelects() {
+          var monthSel = document.getElementById("birth-month");
+          var yearSel = document.getElementById("birth-year");
+          if (!monthSel || !yearSel) return;
+          var dict = I18N[lang];
+          var preservedMonth = monthSel.value;
+          var preservedYear = yearSel.value;
+
+          while (monthSel.options.length > 1) monthSel.remove(1);
+          BIRTH_MONTH_OPTIONS.forEach(function (row) {
+            var opt = document.createElement("option");
+            opt.value = String(row.value);
+            opt.textContent = lang === "th" ? row.th : row.en;
+            monthSel.appendChild(opt);
+          });
+          if (monthSel.options[0]) monthSel.options[0].textContent = dict.birthMonthPlaceholder;
+
+          while (yearSel.options.length > 1) yearSel.remove(1);
+          var currentYear = new Date().getFullYear();
+          for (var y = currentYear; y >= currentYear - 80; y--) {
+            var optY = document.createElement("option");
+            optY.value = String(y);
+            optY.textContent = String(y);
+            yearSel.appendChild(optY);
+          }
+          if (yearSel.options[0]) yearSel.options[0].textContent = dict.birthYearPlaceholder;
+
+          var monthFound = false;
+          for (var mi = 0; mi < monthSel.options.length; mi++) {
+            if (monthSel.options[mi].value === preservedMonth) {
+              monthSel.selectedIndex = mi;
+              monthFound = true;
+              break;
+            }
+          }
+          if (!monthFound) monthSel.selectedIndex = 0;
+
+          var yearFound = false;
+          for (var yi = 0; yi < yearSel.options.length; yi++) {
+            if (yearSel.options[yi].value === preservedYear) {
+              yearSel.selectedIndex = yi;
+              yearFound = true;
+              break;
+            }
+          }
+          if (!yearFound) yearSel.selectedIndex = 0;
+          rebuildBirthDaySelect();
+          updateBirthAgeRules();
+        }
+
+        function bindBirthDateListeners() {
+          ["birth-day", "birth-month", "birth-year"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener("change", function () {
+              if (id === "birth-month" || id === "birth-year") rebuildBirthDaySelect();
+              updateBirthAgeRules();
+            });
+          });
         }
 
         function rebuildArtistSelect() {
@@ -696,6 +1218,8 @@
           });
           rebuildPlacementSelect();
           rebuildArtistSelect();
+          rebuildBirthSelects();
+          updateContactValueField();
         }
 
         btnTh.addEventListener("click", function () {
@@ -710,34 +1234,528 @@
         var fileRef = document.getElementById("reference");
         var previewRefWrap = document.getElementById("preview-ref-wrap");
         var previewRefImg = document.getElementById("preview-ref-img");
+        var previewRefLoading = document.getElementById("preview-ref-loading");
+        var previewRefStatus = document.getElementById("preview-ref-status");
         var filePlace = document.getElementById("placement-photo");
         var previewPlaceWrap = document.getElementById("preview-place-wrap");
         var previewPlaceImg = document.getElementById("preview-place-img");
+        var previewPlaceLoading = document.getElementById("preview-place-loading");
+        var previewPlaceStatus = document.getElementById("preview-place-status");
+
+        var IMAGE_MAX_WIDTH = 2500;
+        var IMAGE_JPEG_QUALITY = 0.85;
+        var IMAGE_SIMPLE_MAX_WIDTH = 1200;
+        var IMAGE_SIMPLE_JPEG_QUALITY = 0.75;
+        var IMAGE_MAX_FILE_BYTES = 45 * 1024 * 1024;
+        var COMPRESS_MAX_ATTEMPTS = 3;
+        var HEIC2ANY_WAIT_MS = 15000;
+        var HEIC2ANY_POLL_MS = 50;
+        var heightCmEl = document.getElementById("height-cm");
+        var widthCmEl = document.getElementById("width-cm");
+        var widthCmWrap = document.getElementById("width-cm-wrap");
         var placement = document.getElementById("placement");
         var placementOtherWrap = document.getElementById("placement-other-wrap");
         var placementOther = document.getElementById("placement-other");
         var artistSelect = document.getElementById("artist");
+        var consentCb = document.getElementById("consent");
+        var submitBtn = document.getElementById("submit-btn");
+        var contactMethodEl = document.getElementById("contact-method");
+        var contactValueEl = document.getElementById("contact-value");
+        var contactValueWrap = document.getElementById("contact-value-wrap");
+        var contactValueLabelEl = document.getElementById("contact-value-label");
         var modal = document.getElementById("modal");
-        var modalClose = document.getElementById("modal-close");
 
-        function bindPreview(input, wrap, img) {
-          input.addEventListener("change", function () {
-            var file = input.files && input.files[0];
-            if (!file || !file.type.startsWith("image/")) {
-              wrap.classList.add("hidden");
-              img.removeAttribute("src");
-              return;
-            }
-            var url = URL.createObjectURL(file);
-            img.onload = function () {
-              URL.revokeObjectURL(url);
-            };
-            img.src = url;
-            wrap.classList.remove("hidden");
+        var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        var CONTACT_INPUT_CONFIG = {
+          phone: {
+            type: "tel",
+            inputmode: "tel",
+            autocomplete: "tel",
+            placeholderKey: "placeholderContactPhone",
+            labelKey: "contactOptPhone",
+          },
+          email: {
+            type: "email",
+            autocomplete: "email",
+            placeholderKey: "placeholderContactEmail",
+            labelKey: "contactOptEmail",
+          },
+          line: {
+            type: "text",
+            autocomplete: "off",
+            placeholderKey: "placeholderContactLine",
+            labelKey: "contactOptLine",
+          },
+          instagram: {
+            type: "text",
+            autocomplete: "off",
+            placeholderKey: "placeholderContactInstagram",
+            labelKey: "contactOptInstagram",
+          },
+          facebook: {
+            type: "text",
+            autocomplete: "off",
+            placeholderKey: "placeholderContactFacebook",
+            labelKey: "contactOptFacebook",
+          },
+        };
+
+        function formatPhoneForLegacyDisplay(method, value) {
+          if (method === "phone") return value;
+          var labels = {
+            email: "Email",
+            line: "Line",
+            instagram: "IG",
+            facebook: "FB",
+          };
+          var prefix = labels[method] || method;
+          return prefix + ": " + value;
+        }
+
+        function updateContactValueField() {
+          if (!contactMethodEl || !contactValueEl || !contactValueWrap) return;
+          var method = contactMethodEl.value;
+          var cfg = CONTACT_INPUT_CONFIG[method];
+          if (!cfg) {
+            contactValueWrap.classList.add("hidden");
+            contactValueEl.value = "";
+            contactValueEl.removeAttribute("required");
+            return;
+          }
+          contactValueWrap.classList.remove("hidden");
+          contactValueEl.required = true;
+          contactValueEl.type = cfg.type || "text";
+          contactValueEl.placeholder = t(cfg.placeholderKey);
+          if (contactValueLabelEl && cfg.labelKey) {
+            contactValueLabelEl.textContent = t(cfg.labelKey);
+          }
+          if (cfg.inputmode) contactValueEl.setAttribute("inputmode", cfg.inputmode);
+          else contactValueEl.removeAttribute("inputmode");
+          if (cfg.autocomplete) contactValueEl.setAttribute("autocomplete", cfg.autocomplete);
+          else contactValueEl.removeAttribute("autocomplete");
+        }
+
+        function validateContactFields() {
+          if (!contactMethodEl || !contactValueEl) return { ok: false, reason: "missing" };
+          var method = contactMethodEl.value;
+          if (!method || !CONTACT_INPUT_CONFIG[method]) return { ok: false, reason: "method" };
+          var val = contactValueEl.value.trim();
+          if (!val) return { ok: false, reason: "empty" };
+          if (method === "email" && !EMAIL_PATTERN.test(val)) {
+            return { ok: false, reason: "email" };
+          }
+          return { ok: true, method: method, value: val };
+        }
+
+        if (contactMethodEl) {
+          contactMethodEl.addEventListener("change", function () {
+            if (contactValueEl) contactValueEl.value = "";
+            updateContactValueField();
           });
         }
-        bindPreview(fileRef, previewRefWrap, previewRefImg);
-        bindPreview(filePlace, previewPlaceWrap, previewPlaceImg);
+        updateContactValueField();
+        var modalBodyEl = document.getElementById("modal-body");
+        var modalClose = document.getElementById("modal-close");
+
+        function fileFingerprint(file) {
+          return String(file.name) + "|" + file.size + "|" + file.lastModified;
+        }
+
+        function setCompressedOnInput(input, file, dataUrl) {
+          input._jtCompressedUrl = dataUrl;
+          input._jtCompressedFp = fileFingerprint(file);
+          input._jtCompressState = "success";
+          input._jtCompressError = null;
+        }
+
+        function compressedMatchesFile(input, file) {
+          return !!(input._jtCompressedUrl && input._jtCompressedFp === fileFingerprint(file));
+        }
+
+        function resetInputCompressState(input) {
+          if (!input) return;
+          input._jtCompressState = "idle";
+          input._jtCompressError = null;
+          input._jtCompressPromise = null;
+          delete input._jtCompressedUrl;
+          delete input._jtCompressedFp;
+        }
+
+        function imageCompressionBlocksSubmit() {
+          var refFile = fileRef && fileRef.files && fileRef.files[0];
+          if (refFile) {
+            var refState = fileRef._jtCompressState || "idle";
+            if (refState !== "success") return true;
+          }
+          var placeFile = filePlace && filePlace.files && filePlace.files[0];
+          if (placeFile) {
+            var placeState = filePlace._jtCompressState || "idle";
+            if (placeState !== "success") return true;
+          }
+          return false;
+        }
+
+        function formatImageProcessError(err) {
+          var code =
+            err && err.code
+              ? String(err.code)
+              : err && err.message
+                ? String(err.message)
+                : "generic";
+          if (code === "heic_convert" || code === "heic") return t("imageErrorHeic");
+          if (code === "heic2any_timeout" || code === "heic_library") return t("imageErrorLibrary");
+          if (code === "canvas_oom" || code === "memory") return t("imageErrorMemory");
+          if (code === "file_too_large") return t("imageErrorTooLarge");
+          var msg = (err && err.message ? String(err.message) : "").toLowerCase();
+          if (msg.indexOf("heic") !== -1) return t("imageErrorHeic");
+          if (msg.indexOf("memory") !== -1 || msg.indexOf("quota") !== -1) return t("imageErrorMemory");
+          return t("imageErrorGeneric");
+        }
+
+        function waitForHeic2Any(maxWaitMs) {
+          var limit = maxWaitMs != null ? maxWaitMs : HEIC2ANY_WAIT_MS;
+          return new Promise(function (resolve, reject) {
+            if (typeof heic2any !== "undefined") {
+              resolve();
+              return;
+            }
+            var start = Date.now();
+            function tick() {
+              if (typeof heic2any !== "undefined") {
+                resolve();
+                return;
+              }
+              if (Date.now() - start >= limit) {
+                var err = new Error("heic2any_timeout");
+                err.code = "heic2any_timeout";
+                reject(err);
+                return;
+              }
+              setTimeout(tick, HEIC2ANY_POLL_MS);
+            }
+            tick();
+          });
+        }
+
+        function isHeicFile(file) {
+          if (!file) return false;
+          var type = (file.type || "").toLowerCase();
+          if (
+            type === "image/heic" ||
+            type === "image/heif" ||
+            type.indexOf("heic") !== -1 ||
+            type.indexOf("heif") !== -1
+          ) {
+            return true;
+          }
+          return /\.(heic|heif)$/i.test(file.name || "");
+        }
+
+        function isLikelyImageFile(file) {
+          if (!file) return false;
+          if (isHeicFile(file)) return true;
+          var type = (file.type || "").toLowerCase();
+          if (type.indexOf("image/") === 0) return true;
+          return /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name || "");
+        }
+
+        function revokeTrackedObjectUrls(urls) {
+          if (!urls || !urls.length) return;
+          for (var i = 0; i < urls.length; i++) {
+            try {
+              if (urls[i]) URL.revokeObjectURL(urls[i]);
+            } catch (e) {}
+          }
+        }
+
+        function convertHeicToJpegBlob(file) {
+          return waitForHeic2Any()
+            .then(function () {
+              return Promise.resolve(
+                heic2any({
+                  blob: file,
+                  toType: "image/jpeg",
+                  quality: 0.92,
+                })
+              );
+            })
+            .then(function (result) {
+              var blob = Array.isArray(result) ? result[0] : result;
+              if (!blob) {
+                var emptyErr = new Error("heic_convert");
+                emptyErr.code = "heic_convert";
+                throw emptyErr;
+              }
+              return blob;
+            })
+            .catch(function (err) {
+              if (err && err.code) throw err;
+              var wrap = new Error("heic_convert");
+              wrap.code = "heic_convert";
+              wrap.cause = err;
+              throw wrap;
+            });
+        }
+
+        function loadImageFromBlob(blob, objectUrls) {
+          return new Promise(function (resolve, reject) {
+            var blobUrl = URL.createObjectURL(blob);
+            objectUrls.push(blobUrl);
+            var img = new Image();
+            img.decoding = "async";
+            img.onload = function () {
+              resolve({ img: img, blobUrl: blobUrl });
+            };
+            img.onerror = function () {
+              reject(new Error("image load failed"));
+            };
+            img.src = blobUrl;
+          });
+        }
+
+        /** Canvas → JPEG (พื้นหลังขาว — รองรับ PNG/WEBP โปร่งใส) */
+        function drawImageToJpegDataUrl(img, mode) {
+          var w = img.naturalWidth || img.width;
+          var h = img.naturalHeight || img.height;
+          if (!w || !h) throw new Error("invalid image dimensions");
+          var maxW = mode === "simple" ? IMAGE_SIMPLE_MAX_WIDTH : IMAGE_MAX_WIDTH;
+          var quality = mode === "simple" ? IMAGE_SIMPLE_JPEG_QUALITY : IMAGE_JPEG_QUALITY;
+          var scale = w > maxW ? maxW / w : 1;
+          var outW = Math.max(1, Math.round(w * scale));
+          var outH = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement("canvas");
+          canvas.width = outW;
+          canvas.height = outH;
+          var ctx = canvas.getContext("2d");
+          if (!ctx) throw new Error("canvas not supported");
+          try {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, outW, outH);
+            ctx.drawImage(img, 0, 0, outW, outH);
+            return canvas.toDataURL("image/jpeg", quality);
+          } catch (e) {
+            var oom = new Error("canvas_oom");
+            oom.code = "canvas_oom";
+            oom.cause = e;
+            throw oom;
+          }
+        }
+
+        function compressImageFileCore(file, opts, coreOpts) {
+          coreOpts = coreOpts || {};
+          var mode = coreOpts.mode === "simple" ? "simple" : "full";
+          var objectUrls = [];
+
+          function emitStatus(i18nKey) {
+            if (typeof opts.onStatus === "function") opts.onStatus(t(i18nKey));
+          }
+
+          return Promise.resolve()
+            .then(function () {
+              if (!isLikelyImageFile(file)) {
+                var invalid = new Error("not an image");
+                invalid.code = "invalid";
+                throw invalid;
+              }
+              if (file.size > IMAGE_MAX_FILE_BYTES) {
+                var big = new Error("file_too_large");
+                big.code = "file_too_large";
+                throw big;
+              }
+              if (mode === "full") emitStatus("imageStatusPreparing");
+              if (isHeicFile(file)) {
+                if (mode === "full") emitStatus("imageStatusHeic");
+                return convertHeicToJpegBlob(file);
+              }
+              return file;
+            })
+            .then(function (sourceBlob) {
+              if (mode === "full") emitStatus("imageStatusCompressing");
+              else if (typeof opts.onStatus === "function") opts.onStatus(t("imageStatusFallback"));
+              return loadImageFromBlob(sourceBlob, objectUrls).then(function (loaded) {
+                try {
+                  return drawImageToJpegDataUrl(loaded.img, mode);
+                } finally {
+                  try {
+                    if (loaded.blobUrl) URL.revokeObjectURL(loaded.blobUrl);
+                  } catch (revokeErr) {}
+                  var idx = objectUrls.indexOf(loaded.blobUrl);
+                  if (idx !== -1) objectUrls.splice(idx, 1);
+                  loaded.img.src = "";
+                }
+              });
+            })
+            .finally(function () {
+              revokeTrackedObjectUrls(objectUrls);
+            });
+        }
+
+        function compressImageFileRobust(file, opts) {
+          var attempt = 0;
+          function tryFullCompress() {
+            attempt++;
+            return compressImageFileCore(file, opts, { mode: "full" }).catch(function (err) {
+              if (attempt < COMPRESS_MAX_ATTEMPTS) return tryFullCompress();
+              throw err;
+            });
+          }
+          return tryFullCompress().catch(function () {
+            return compressImageFileCore(file, opts, { mode: "simple" });
+          });
+        }
+
+        /**
+         * Universal Image Handler — retry + simple resize fallback
+         * @returns {Promise<string>} data URL image/jpeg
+         */
+        function compressImageFile(file, opts) {
+          return compressImageFileRobust(file, opts);
+        }
+
+        function runCompressPipeline(input, file, opts) {
+          opts = opts || {};
+          input._jtCompressState = "processing";
+          input._jtCompressError = null;
+          refreshSubmitButtonState();
+
+          var promise = compressImageFileRobust(file, opts)
+            .then(function (dataUrl) {
+              setCompressedOnInput(input, file, dataUrl);
+              if (typeof opts.onStatus === "function") opts.onStatus(t("imageStatusSuccess"));
+              refreshSubmitButtonState();
+              return dataUrl;
+            })
+            .catch(function (err) {
+              input._jtCompressState = "error";
+              input._jtCompressError = err;
+              refreshSubmitButtonState();
+              throw err;
+            })
+            .finally(function () {
+              input._jtCompressPromise = null;
+            });
+
+          input._jtCompressPromise = promise;
+          return promise;
+        }
+
+        /** รอจนกว่าจะบีบอัดสำเร็จ 100% (คิวเดียวต่อ input) */
+        function ensureImageReady(input, file, opts) {
+          if (!file) return Promise.resolve("");
+          if (
+            compressedMatchesFile(input, file) &&
+            input._jtCompressState === "success" &&
+            input._jtCompressedUrl
+          ) {
+            return Promise.resolve(input._jtCompressedUrl);
+          }
+          if (input._jtCompressPromise && input._jtCompressState === "processing") {
+            return input._jtCompressPromise;
+          }
+          return runCompressPipeline(input, file, opts);
+        }
+
+        function resolveCompressedImage(input, file, opts) {
+          return ensureImageReady(input, file, opts);
+        }
+
+        function bindImageInputPreview(cfg) {
+          var input = cfg.input;
+          var wrap = cfg.wrap;
+          var img = cfg.img;
+          var loadingEl = cfg.loading;
+          var statusEl = cfg.status;
+          var previewGen = 0;
+
+          function clearPreview() {
+            previewGen++;
+            wrap.classList.add("hidden");
+            if (loadingEl) {
+              loadingEl.classList.add("hidden");
+              loadingEl.setAttribute("aria-hidden", "true");
+            }
+            if (statusEl) {
+              statusEl.classList.add("hidden");
+              statusEl.textContent = "";
+            }
+            img.classList.add("opacity-0");
+            img.removeAttribute("src");
+            resetInputCompressState(input);
+            refreshSubmitButtonState();
+          }
+
+          function showPreviewLoading() {
+            wrap.classList.remove("hidden");
+            if (loadingEl) {
+              loadingEl.classList.remove("hidden");
+              loadingEl.setAttribute("aria-hidden", "false");
+            }
+            if (statusEl) {
+              statusEl.classList.remove("hidden");
+              statusEl.textContent = t("previewProcessing");
+            }
+            img.classList.add("opacity-0");
+          }
+
+          function showPreviewReady(dataUrl) {
+            if (loadingEl) {
+              loadingEl.classList.add("hidden");
+              loadingEl.setAttribute("aria-hidden", "true");
+            }
+            if (statusEl) {
+              statusEl.classList.remove("hidden");
+              statusEl.textContent = t("imageStatusSuccess");
+            }
+            img.onload = function () {
+              img.classList.remove("opacity-0");
+            };
+            img.src = dataUrl;
+          }
+
+          input.addEventListener("change", function () {
+            var file = input.files && input.files[0];
+            if (!file || !isLikelyImageFile(file)) {
+              clearPreview();
+              return;
+            }
+            var gen = ++previewGen;
+            showPreviewLoading();
+            runCompressPipeline(input, file, {
+              onStatus: function (msg) {
+                if (gen !== previewGen || !statusEl) return;
+                statusEl.classList.remove("hidden");
+                statusEl.textContent = msg;
+              },
+            })
+              .then(function (dataUrl) {
+                if (gen !== previewGen) return;
+                showPreviewReady(dataUrl);
+              })
+              .catch(function (err) {
+                if (gen !== previewGen) return;
+                clearPreview();
+                showFormError(formatImageProcessError(err));
+              });
+          });
+
+          return { clear: clearPreview };
+        }
+
+        var refPreviewCtl = bindImageInputPreview({
+          input: fileRef,
+          wrap: previewRefWrap,
+          img: previewRefImg,
+          loading: previewRefLoading,
+          status: previewRefStatus,
+        });
+        var placePreviewCtl = bindImageInputPreview({
+          input: filePlace,
+          wrap: previewPlaceWrap,
+          img: previewPlaceImg,
+          loading: previewPlaceLoading,
+          status: previewPlaceStatus,
+        });
 
         function updatePlacementOther() {
           var isOther = placement.value === "other";
@@ -746,6 +1764,27 @@
         }
         placement.addEventListener("change", updatePlacementOther);
         updatePlacementOther();
+
+        function hasValidHeightCm() {
+          if (!heightCmEl) return false;
+          var raw = heightCmEl.value.trim();
+          if (raw === "") return false;
+          var h = parseFloat(raw);
+          return !isNaN(h) && h > 0;
+        }
+
+        function updateWidthFieldVisibility() {
+          if (!widthCmWrap || !widthCmEl) return;
+          var show = hasValidHeightCm();
+          widthCmWrap.classList.toggle("hidden", !show);
+          if (!show) widthCmEl.value = "";
+        }
+
+        if (heightCmEl) {
+          heightCmEl.addEventListener("input", updateWidthFieldVisibility);
+          heightCmEl.addEventListener("change", updateWidthFieldVisibility);
+        }
+        updateWidthFieldVisibility();
 
         var inkColorCb = document.getElementById("ink-color");
         var inkBwCb = document.getElementById("ink-bw");
@@ -758,7 +1797,10 @@
           });
         }
 
-        function openModal() {
+        function openModal(bodyKey) {
+          if (modalBodyEl) {
+            modalBodyEl.textContent = t(bodyKey === "recovery" ? "modalBodyRecovery" : "modalBody");
+          }
           modal.classList.remove("hidden");
           modal.classList.add("flex");
           document.body.style.overflow = "hidden";
@@ -779,19 +1821,6 @@
           formError.classList.add("hidden");
         }
 
-        function readFileAsDataURL(file) {
-          return new Promise(function (resolve, reject) {
-            var reader = new FileReader();
-            reader.onload = function () {
-              resolve(reader.result);
-            };
-            reader.onerror = function () {
-              reject(reader.error);
-            };
-            reader.readAsDataURL(file);
-          });
-        }
-
         function loadBookingsFromStorage() {
           try {
             var raw = localStorage.getItem(STORAGE_KEY);
@@ -802,46 +1831,167 @@
           }
         }
 
-        var submitBtn = document.getElementById("submit-btn");
+        function isDataImageUrl(v) {
+          return !!(v && String(v).indexOf("data:image") === 0);
+        }
+
+        function isStorageQuotaError(err) {
+          if (!err) return false;
+          if (err.name === "QuotaExceededError") return true;
+          if (err.code === 22 || err.code === 1014) return true;
+          var msg = String(err.message || err);
+          return /quota|exceeded|storage full/i.test(msg);
+        }
+
+        /** ตัดรูป base64 ของรายการเก่า — เหลือรายการล่าสุดครบ เพื่อลดขนาด localStorage */
+        function pruneBookingsForLocalQuota(bookings) {
+          if (!Array.isArray(bookings) || !bookings.length) return bookings;
+          var lastIdx = bookings.length - 1;
+          var imageFields = [
+            "referenceImage",
+            "placementImage",
+            "depositSlipImage",
+            "designSketchImage",
+            "cotSlipImage",
+          ];
+          return bookings.map(function (b, i) {
+            if (!b || typeof b !== "object") return b;
+            if (i === lastIdx) return b;
+            var copy = Object.assign({}, b);
+            imageFields.forEach(function (field) {
+              if (isDataImageUrl(copy[field])) copy[field] = "";
+            });
+            return copy;
+          });
+        }
+
+        function tryWriteBookingsLocal(bookings) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+        }
+
+        /**
+         * localStorage เต็ม — บันทึกขึ้น Sheets ก่อน แล้วลดแคชในเครื่อง
+         * ไม่เรียก pushAllFromLocal ก่อนอัปเดต local (กันทับข้อมูลใหม่)
+         */
+        function recoverFromLocalStorageQuota(bookings) {
+          var JSS =
+            typeof JarbtattooSheetsStorage !== "undefined" ? JarbtattooSheetsStorage : null;
+          if (!JSS || !JSS.save) {
+            return Promise.reject(new Error("no sheets"));
+          }
+          return JSS.save(STORAGE_KEY, bookings).then(function () {
+            var pruned = pruneBookingsForLocalQuota(bookings);
+            var localOk = false;
+            try {
+              tryWriteBookingsLocal(pruned);
+              localOk = true;
+            } catch (e2) {
+              try {
+                localStorage.removeItem(STORAGE_KEY);
+              } catch (e3) {}
+            }
+            if (localOk && JSS.pushAllFromLocal) {
+              return JSS.pushAllFromLocal().then(function () {
+                return { localOk: true, cloudOk: true };
+              });
+            }
+            return { localOk: localOk, cloudOk: true };
+          });
+        }
+
+        function persistBookings(bookings) {
+          try {
+            tryWriteBookingsLocal(bookings);
+            if (
+              typeof JarbtattooSheetsStorage !== "undefined" &&
+              JarbtattooSheetsStorage.syncAfterLocalWrite
+            ) {
+              JarbtattooSheetsStorage.syncAfterLocalWrite(STORAGE_KEY, bookings);
+            }
+            return Promise.resolve({ mode: "local" });
+          } catch (err) {
+            if (!isStorageQuotaError(err)) {
+              return Promise.reject(err);
+            }
+            return recoverFromLocalStorageQuota(bookings).then(function (result) {
+              return { mode: "recovery", localOk: result.localOk };
+            });
+          }
+        }
+
+        function finishSuccessfulSubmit(recoveryMode) {
+          form.reset();
+          refPreviewCtl.clear();
+          placePreviewCtl.clear();
+          rebuildPlacementSelect();
+          rebuildArtistSelect();
+          rebuildBirthSelects();
+          updatePlacementOther();
+          updateContactValueField();
+          updateBirthAgeRules();
+          hideFormError();
+          openModal(recoveryMode ? "recovery" : undefined);
+        }
 
         form.addEventListener("submit", function (e) {
           e.preventDefault();
           hideFormError();
 
           var nameOk = document.getElementById("full-name").value.trim().length > 0;
-          var phoneOk = document.getElementById("phone").value.trim().length > 0;
+          var birthDayEl = document.getElementById("birth-day");
+          var birthMonthEl = document.getElementById("birth-month");
+          var birthYearEl = document.getElementById("birth-year");
+          var parentalConsentCb = document.getElementById("parental-consent");
+          updateBirthAgeRules();
+          var birthOk = birthAgeState.valid && !birthAgeState.under18;
+          var parentalOk =
+            !birthAgeState.needsParental || (parentalConsentCb && parentalConsentCb.checked);
+          var contactCheck = validateContactFields();
+          var contactOk = contactCheck.ok;
           var detailsOk = document.getElementById("details").value.trim().length > 0;
-          var w = parseFloat(document.getElementById("width-cm").value);
-          var h = parseFloat(document.getElementById("height-cm").value);
-          var sizeOk =
-            !isNaN(w) &&
-            !isNaN(h) &&
-            w > 0 &&
-            h > 0 &&
-            document.getElementById("width-cm").value !== "" &&
-            document.getElementById("height-cm").value !== "";
-          var refOk = fileRef.files && fileRef.files.length > 0;
-          var placeOk = filePlace.files && filePlace.files.length > 0;
+          var heightRaw = heightCmEl ? heightCmEl.value.trim() : "";
+          var h = parseFloat(heightRaw);
+          var heightOk = heightRaw !== "" && !isNaN(h) && h > 0;
+          var widthRaw = widthCmEl ? widthCmEl.value.trim() : "";
+          var w = widthRaw === "" ? null : parseFloat(widthRaw);
+          var widthOk = widthRaw === "" || (!isNaN(w) && w > 0);
+          var sizeOk = heightOk && widthOk;
           var placeSel = placement.value !== "";
           var otherOk = placement.value !== "other" || placementOther.value.trim().length > 0;
           var artistOk = artistSelect && artistSelect.value !== "";
           var inkColorOk = inkColorCb && inkColorCb.checked;
           var inkBwOk = inkBwCb && inkBwCb.checked;
           var inkOk = inkColorOk !== inkBwOk;
+          var consentOk = consentCb && consentCb.checked;
 
           if (
             !nameOk ||
-            !phoneOk ||
+            !birthOk ||
+            !parentalOk ||
+            !contactOk ||
             !detailsOk ||
             !sizeOk ||
-            !refOk ||
-            !placeOk ||
             !placeSel ||
             !otherOk ||
             !artistOk ||
-            !inkOk
+            !inkOk ||
+            !consentOk
           ) {
-            if (!inkOk) {
+            if (!consentOk) {
+              showFormError(t("formErrorConsent"));
+            } else if (!birthOk && birthAgeState.under18) {
+              showFormError(t("birthUnder18Warning"));
+            } else if (!parentalOk) {
+              showFormError(t("formErrorParentalConsent"));
+            } else if (!birthOk) {
+              showFormError(t("birthInvalidDate"));
+            } else if (!contactOk) {
+              if (contactCheck.reason === "email") {
+                showFormError(t("formErrorContactEmail"));
+              } else {
+                showFormError(t("formErrorContact"));
+              }
+            } else if (!inkOk) {
               showFormError(t("formErrorInk"));
             } else if (!otherOk && placement.value === "other") {
               showFormError(t("formErrorOther"));
@@ -851,8 +2001,10 @@
             return;
           }
 
-          var refFile = fileRef.files[0];
-          var placeFile = filePlace.files[0];
+          var refFile =
+            fileRef.files && fileRef.files.length > 0 ? fileRef.files[0] : null;
+          var placeFile =
+            filePlace.files && filePlace.files.length > 0 ? filePlace.files[0] : null;
           var placementLabel = "";
           if (placement.options[placement.selectedIndex]) {
             placementLabel = placement.options[placement.selectedIndex].textContent.trim();
@@ -866,7 +2018,40 @@
           submitBtn.disabled = true;
           submitBtn.classList.add("opacity-60", "cursor-not-allowed");
 
-          Promise.all([readFileAsDataURL(refFile), readFileAsDataURL(placeFile)])
+          var submitStatus = function (msg) {
+            if (previewRefStatus && refFile) {
+              previewRefStatus.classList.remove("hidden");
+              previewRefStatus.textContent = msg;
+            }
+            if (previewPlaceStatus && placeFile) {
+              previewPlaceStatus.classList.remove("hidden");
+              previewPlaceStatus.textContent = msg;
+            }
+          };
+
+          Promise.all([
+            refFile
+              ? ensureImageReady(fileRef, refFile, {
+                  onStatus: function (msg) {
+                    submitStatus(msg);
+                    if (previewRefStatus) {
+                      previewRefStatus.classList.remove("hidden");
+                      previewRefStatus.textContent = msg;
+                    }
+                  },
+                })
+              : Promise.resolve(""),
+            placeFile
+              ? ensureImageReady(filePlace, placeFile, {
+                  onStatus: function (msg) {
+                    if (previewPlaceStatus) {
+                      previewPlaceStatus.classList.remove("hidden");
+                      previewPlaceStatus.textContent = msg;
+                    }
+                  },
+                })
+              : Promise.resolve(""),
+          ])
             .then(function (imgs) {
               var bookings = loadBookingsFromStorage();
               var inkStyle = inkColorOk ? "color" : "blackwhite";
@@ -875,11 +2060,20 @@
                 id: "b_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10),
                 createdAt: new Date().toISOString(),
                 fullName: document.getElementById("full-name").value.trim(),
-                phone: document.getElementById("phone").value.trim(),
+                birthDate: birthAgeState.birthDateIso,
+                birthMonth: birthMonthEl ? parseInt(birthMonthEl.value, 10) : null,
+                birthYear: birthYearEl ? parseInt(birthYearEl.value, 10) : null,
+                calculatedAge: birthAgeState.age,
+                parentalConsent: birthAgeState.needsParental
+                  ? !!(parentalConsentCb && parentalConsentCb.checked)
+                  : false,
+                contactMethod: contactCheck.method,
+                contactValue: contactCheck.value,
+                phone: formatPhoneForLegacyDisplay(contactCheck.method, contactCheck.value),
                 details: document.getElementById("details").value.trim(),
                 inkStyle: inkStyle,
                 inkStyleLabel: inkStyleLabel,
-                widthCm: w,
+                widthCm: widthRaw === "" ? null : w,
                 heightCm: h,
                 placement: placement.value,
                 placementLabel: placementLabel,
@@ -888,37 +2082,43 @@
                 artistLabel: artistLabel,
                 referenceImage: imgs[0],
                 placementImage: imgs[1],
+                consentInternal: true,
+                consentMarketing: true,
+                consentAt: new Date().toISOString(),
                 status: "pending-review",
+                _synced: false,
               };
               bookings.push(booking);
-              try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
-                if (
-                  typeof JarbtattooSheetsStorage !== "undefined" &&
-                  JarbtattooSheetsStorage.syncAfterLocalWrite
-                ) {
-                  JarbtattooSheetsStorage.syncAfterLocalWrite(STORAGE_KEY, bookings);
-                }
-              } catch (err) {
+              return persistBookings(bookings).then(function (result) {
+                finishSuccessfulSubmit(result && result.mode === "recovery");
+              });
+            })
+            .catch(function (err) {
+              if (isStorageQuotaError(err) || (err && err.message === "no sheets")) {
                 showFormError(t("storageQuota"));
                 return;
               }
-              form.reset();
-              previewRefWrap.classList.add("hidden");
-              previewPlaceWrap.classList.add("hidden");
-              previewRefImg.removeAttribute("src");
-              previewPlaceImg.removeAttribute("src");
-              rebuildPlacementSelect();
-              rebuildArtistSelect();
-              updatePlacementOther();
-              openModal();
-            })
-            .catch(function () {
+              if (
+                err &&
+                (err.code ||
+                  (err.message && String(err.message).toLowerCase().indexOf("image") !== -1) ||
+                  err.code === "heic_convert" ||
+                  err.code === "canvas_oom" ||
+                  err.code === "file_too_large")
+              ) {
+                showFormError(formatImageProcessError(err));
+                return;
+              }
+              if (fileRef._jtCompressError || (filePlace && filePlace._jtCompressError)) {
+                showFormError(
+                  formatImageProcessError(fileRef._jtCompressError || filePlace._jtCompressError)
+                );
+                return;
+              }
               showFormError(t("saveReadError"));
             })
             .finally(function () {
-              submitBtn.disabled = false;
-              submitBtn.classList.remove("opacity-60", "cursor-not-allowed");
+              refreshSubmitButtonState();
             });
         });
 
@@ -930,6 +2130,7 @@
           if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
         });
 
+        bindBirthDateListeners();
         setLang(lang);
       })();
     </script>
